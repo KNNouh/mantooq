@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, User, Bot, Upload, LogOut } from 'lucide-react';
+import { Send, User, Bot, Upload, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from './AdminUpload';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -25,6 +26,7 @@ interface Conversation {
 
 export const ChatInterface: React.FC = () => {
   const { user, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -172,14 +174,24 @@ export const ChatInterface: React.FC = () => {
             <h2 className="text-lg font-semibold">Chat History</h2>
             <div className="flex gap-2">
               {isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowUpload(!showUpload)}
-                  title="Admin Upload"
-                >
-                  <Upload className="w-4 h-4" />
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/admin')}
+                    title="Admin Panel"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowUpload(!showUpload)}
+                    title="Quick Upload"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
