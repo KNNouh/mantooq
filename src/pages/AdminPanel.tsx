@@ -26,7 +26,7 @@ interface KBFile {
   storage_path: string;
 }
 
-export const AdminPanel: React.FC = () => {
+const AdminPanel: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [files, setFiles] = useState<KBFile[]>([]);
