@@ -54,22 +54,29 @@ export const AuthForm: React.FC = () => {
     setLoading(true);
     
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: undefined // Disable email confirmation
         }
       });
       
       if (error) throw error;
       
-      toast({
-        title: 'تم إنشاء الحساب',
-        description: 'يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.',
-      });
+      // If signup is successful and session exists, user is automatically signed in
+      if (data.session) {
+        toast({
+          title: 'تم إنشاء الحساب بنجاح',
+          description: 'تم تسجيل دخولك تلقائياً.',
+        });
+        navigate('/');
+      } else {
+        toast({
+          title: 'تم إنشاء الحساب',
+          description: 'تم إنشاء حسابك بنجاح.',
+        });
+      }
     } catch (error: any) {
       toast({
         title: 'خطأ في إنشاء الحساب',
