@@ -40,36 +40,18 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
     try {
       setLoading(true);
       
-      // First get all users with their roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          role
-        `);
+      // Use the new function to get users with real emails
+      const { data: usersData, error } = await supabase.rpc('get_users_with_roles');
 
-      if (rolesError) throw rolesError;
+      if (error) throw error;
 
-      // Group roles by user
-      const rolesByUser: Record<string, string[]> = {};
-      userRoles?.forEach(ur => {
-        if (!rolesByUser[ur.user_id]) {
-          rolesByUser[ur.user_id] = [];
-        }
-        rolesByUser[ur.user_id].push(ur.role);
-      });
-
-      // Get unique user IDs
-      const userIds = Object.keys(rolesByUser);
-      
-      // For each user, we need to simulate the user data since we can't query auth.users directly
-      // We'll create a user list based on existing roles and any auth session info we have
-      const usersWithRoles: UserWithRole[] = userIds.map(userId => ({
-        id: userId,
-        email: userId.includes('@') ? userId : 'user@example.com', // Fallback since we can't access auth.users
-        created_at: new Date().toISOString(),
-        roles: rolesByUser[userId] || []
-      }));
+      // Transform the data to match our interface
+      const usersWithRoles: UserWithRole[] = usersData?.map(user => ({
+        id: user.user_id,
+        email: user.email,
+        created_at: user.created_at,
+        roles: user.roles || []
+      })) || [];
 
       setUsers(usersWithRoles);
     } catch (error) {

@@ -190,6 +190,15 @@ export type Database = {
         Args: { p: string }
         Returns: string
       }
+      get_users_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          roles: string[]
+        }[]
+      }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
