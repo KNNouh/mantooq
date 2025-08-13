@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+import { default as pdfParse } from 'https://esm.sh/pdf-parse@1.1.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -224,20 +225,26 @@ async function extractTextFromPDF(file: Blob): Promise<string> {
   try {
     console.log('Starting PDF text extraction, file size:', file.size);
     
-    // For now, we'll return a placeholder text indicating PDF processing is not yet fully implemented
-    // This allows the function to work while we implement proper PDF text extraction
-    const placeholderText = `[PDF Content - ${file.size} bytes]
+    // Convert blob to buffer for pdf-parse
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
     
-This is a placeholder for PDF content extraction. The original PDF file has been uploaded and stored.
-To properly extract text from PDFs, we need to implement a PDF parsing library that works with Deno.
-
-PDF processing will be implemented in a future update. For now, please convert your PDF to a text file for processing.`;
+    console.log('PDF file loaded, attempting to parse...');
     
-    console.log('PDF processing completed with placeholder text');
-    return placeholderText;
+    // Use pdf-parse to extract text
+    const data = await pdfParse(buffer);
+    const extractedText = data.text;
+    
+    console.log('PDF text extraction completed, total length:', extractedText.length);
+    
+    if (extractedText.trim().length === 0) {
+      throw new Error('No text content found in PDF. The PDF might be image-based or corrupted.');
+    }
+    
+    return extractedText.trim();
   } catch (error) {
-    console.error('Error processing PDF:', error);
-    throw new Error(`Failed to process PDF: ${error.message}`);
+    console.error('Error extracting text from PDF:', error);
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 }
 
