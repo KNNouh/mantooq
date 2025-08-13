@@ -143,6 +143,34 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleProcessFile = async (file: KBFile) => {
+    try {
+      toast({
+        title: 'Processing Started',
+        description: `Started processing ${file.filename}`
+      });
+
+      const { data, error } = await supabase.functions.invoke('process-file', {
+        body: { fileId: file.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Processing Complete',
+        description: `Successfully processed ${file.filename} - ${data.chunksProcessed} chunks created`
+      });
+
+      loadFiles(); // Reload to show updated status
+    } catch (error: any) {
+      toast({
+        title: 'Processing Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleDeleteFile = async (file: KBFile) => {
     try {
       // Delete from storage first
@@ -266,6 +294,8 @@ const AdminPanel: React.FC = () => {
             });
           }} />
 
+          <SearchTest />
+
           <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -300,19 +330,19 @@ const AdminPanel: React.FC = () => {
                       <TableCell>{getStatusBadge(file.status)}</TableCell>
                       <TableCell>{file.lang || 'N/A'}</TableCell>
                       <TableCell>{new Date(file.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditDialog(file)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
+                       <TableCell>
+                         <div className="flex gap-2">
+                           <Dialog>
+                             <DialogTrigger asChild>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => openEditDialog(file)}
+                               >
+                                 <Edit className="w-4 h-4" />
+                               </Button>
+                             </DialogTrigger>
+                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Edit File</DialogTitle>
                               </DialogHeader>
@@ -366,33 +396,44 @@ const AdminPanel: React.FC = () => {
                                 </Button>
                               </div>
                             </DialogContent>
-                          </Dialog>
+                           </Dialog>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete File</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{file.filename}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteFile(file)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                           {(file.status === 'pending' || file.status === 'failed') && (
+                             <Button
+                               variant="secondary"
+                               size="sm"
+                               onClick={() => handleProcessFile(file)}
+                               disabled={loading}
+                             >
+                               Process
+                             </Button>
+                           )}
+
+                           <AlertDialog>
+                             <AlertDialogTrigger asChild>
+                               <Button variant="outline" size="sm">
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </AlertDialogTrigger>
+                             <AlertDialogContent>
+                               <AlertDialogHeader>
+                                 <AlertDialogTitle>Delete File</AlertDialogTitle>
+                                 <AlertDialogDescription>
+                                   Are you sure you want to delete "{file.filename}"? This action cannot be undone.
+                                 </AlertDialogDescription>
+                               </AlertDialogHeader>
+                               <AlertDialogFooter>
+                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                 <AlertDialogAction
+                                   onClick={() => handleDeleteFile(file)}
+                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                 >
+                                   Delete
+                                 </AlertDialogAction>
+                               </AlertDialogFooter>
+                             </AlertDialogContent>
+                           </AlertDialog>
+                         </div>
                       </TableCell>
                     </TableRow>
                   ))}
