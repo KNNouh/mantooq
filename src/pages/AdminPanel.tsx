@@ -202,7 +202,10 @@ const AdminPanel: React.FC = () => {
                 <CardTitle>Upload New File</CardTitle>
               </CardHeader>
               <CardContent>
-                <AdminUpload />
+                <AdminUpload onFileUploaded={() => {
+                  loadFiles();
+                  setShowUpload(false);
+                }} />
               </CardContent>
             </Card>
           )}

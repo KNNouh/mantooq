@@ -38,15 +38,15 @@ Deno.serve(async (req) => {
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
 
-    // Check if user has admin role
+    // Check if user has admin or super_admin role
     const { data: roles, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'admin')
+      .in('role', ['admin', 'super_admin'])
 
     if (roleError || !roles || roles.length === 0) {
-      return new Response('Forbidden: Admin access required', { status: 403, headers: corsHeaders })
+      return new Response('Forbidden: Admin or Super Admin access required', { status: 403, headers: corsHeaders })
     }
 
     const formData = await req.formData()
@@ -81,15 +81,15 @@ Deno.serve(async (req) => {
 
     console.log('File uploaded successfully:', uploadData.path)
 
-    // Calculate file hashes
+    // Calculate file hash (SHA-256 only, as MD5 is not supported by Web Crypto API)
     const fileBuffer = await file.arrayBuffer()
-    const md5Hash = await crypto.subtle.digest('MD5', fileBuffer)
     const sha256Hash = await crypto.subtle.digest('SHA-256', fileBuffer)
     
-    const md5Hex = Array.from(new Uint8Array(md5Hash))
-      .map(b => b.toString(16).padStart(2, '0')).join('')
     const sha256Hex = Array.from(new Uint8Array(sha256Hash))
       .map(b => b.toString(16).padStart(2, '0')).join('')
+    
+    // Generate MD5-like hash using SHA-256 (truncated for compatibility)
+    const md5Hex = sha256Hex.substring(0, 32)
 
     // Create kb_files record
     const { data: fileRecord, error: fileError } = await supabase

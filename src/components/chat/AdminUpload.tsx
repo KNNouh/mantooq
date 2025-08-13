@@ -7,7 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Upload } from 'lucide-react';
 
-export const AdminUpload: React.FC = () => {
+interface AdminUploadProps {
+  onFileUploaded?: () => void;
+}
+
+export const AdminUpload: React.FC<AdminUploadProps> = ({ onFileUploaded }) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -79,13 +83,18 @@ export const AdminUpload: React.FC = () => {
       
       toast({
         title: 'Success',
-        description: `File uploaded successfully! File ID: ${result.file_id}`,
+        description: `File uploaded successfully! Processing started.`,
       });
 
       // Reset form
       setFile(null);
       const fileInput = document.getElementById('file-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
+
+      // Notify parent component
+      if (onFileUploaded) {
+        onFileUploaded();
+      }
 
     } catch (error: any) {
       console.error('Upload error:', error);
