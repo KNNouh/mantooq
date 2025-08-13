@@ -301,6 +301,14 @@ export type Database = {
           similarity: number
         }[]
       }
+      promote_user_to_admin: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      remove_admin_role: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       set_kb_file_status: {
         Args: { p_id: string; p_status: string }
         Returns: undefined
