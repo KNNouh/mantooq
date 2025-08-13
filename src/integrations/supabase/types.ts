@@ -41,6 +41,8 @@ export type Database = {
       documents: {
         Row: {
           article_no: string | null
+          chunk_index: number | null
+          chunk_source: string | null
           content: string
           created_at: string | null
           embedding: string
@@ -48,10 +50,14 @@ export type Database = {
           hash: string | null
           id: number
           metadata: Json
+          processing_time_ms: number | null
+          token_count: number | null
           ts: unknown | null
         }
         Insert: {
           article_no?: string | null
+          chunk_index?: number | null
+          chunk_source?: string | null
           content: string
           created_at?: string | null
           embedding: string
@@ -59,10 +65,14 @@ export type Database = {
           hash?: string | null
           id?: number
           metadata?: Json
+          processing_time_ms?: number | null
+          token_count?: number | null
           ts?: unknown | null
         }
         Update: {
           article_no?: string | null
+          chunk_index?: number | null
+          chunk_source?: string | null
           content?: string
           created_at?: string | null
           embedding?: string
@@ -70,6 +80,8 @@ export type Database = {
           hash?: string | null
           id?: number
           metadata?: Json
+          processing_time_ms?: number | null
+          token_count?: number | null
           ts?: unknown | null
         }
         Relationships: []
@@ -77,38 +89,59 @@ export type Database = {
       kb_files: {
         Row: {
           created_at: string | null
+          error_message: string | null
           file_md5: string | null
           file_sha256: string | null
+          file_size_bytes: number | null
           filename: string
           id: string
           lang: string | null
+          processed_chunks: number | null
+          processing_completed_at: string | null
+          processing_started_at: string | null
           requested_by: string | null
+          retry_count: number | null
           status: string
           storage_path: string
+          total_chunks: number | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          error_message?: string | null
           file_md5?: string | null
           file_sha256?: string | null
+          file_size_bytes?: number | null
           filename: string
           id?: string
           lang?: string | null
+          processed_chunks?: number | null
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
           requested_by?: string | null
+          retry_count?: number | null
           status?: string
           storage_path: string
+          total_chunks?: number | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          error_message?: string | null
           file_md5?: string | null
           file_sha256?: string | null
+          file_size_bytes?: number | null
           filename?: string
           id?: string
           lang?: string | null
+          processed_chunks?: number | null
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
           requested_by?: string | null
+          retry_count?: number | null
           status?: string
           storage_path?: string
+          total_chunks?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -144,6 +177,47 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      processing_log: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          file_id: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          stage: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          file_id?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stage: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          file_id?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stage?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processing_log_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "kb_files"
             referencedColumns: ["id"]
           },
         ]
@@ -349,6 +423,25 @@ export type Database = {
       unaccent_init: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      update_processing_progress: {
+        Args: {
+          p_file_id: string
+          p_stage: string
+          p_status: string
+          p_message?: string
+          p_metadata?: Json
+          p_duration_ms?: number
+        }
+        Returns: undefined
+      }
+      validate_file_for_processing: {
+        Args: { p_file_id: string }
+        Returns: {
+          is_valid: boolean
+          error_message: string
+          file_info: Json
+        }[]
       }
       vector_avg: {
         Args: { "": number[] }
