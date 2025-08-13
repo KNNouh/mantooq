@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     // Generate MD5-like hash using SHA-256 (truncated for compatibility)
     const md5Hex = sha256Hex.substring(0, 32)
 
-    // Create kb_files record
+    // Create kb_files record with enhanced tracking
     const { data: fileRecord, error: fileError } = await supabase
       .from('kb_files')
       .insert({
@@ -100,7 +100,8 @@ Deno.serve(async (req) => {
         status: 'pending',
         requested_by: user.id,
         file_md5: md5Hex,
-        file_sha256: sha256Hex
+        file_sha256: sha256Hex,
+        file_size_bytes: file.size
       })
       .select()
       .single()
@@ -117,38 +118,33 @@ Deno.serve(async (req) => {
 
     console.log('File record created:', fileRecord.id)
 
-    // Trigger n8n webhook for processing
-    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d'
-    
-    const webhookPayload = {
-      file_id: fileRecord.id,
-      filename: file.name,
-      storage_path: uploadData.path,
-      file_size: file.size,
-      content_type: file.type,
-      md5: md5Hex,
-      sha256: sha256Hex,
-      uploaded_by: user.id,
-      uploaded_at: new Date().toISOString()
-    }
+    // Log the upload completion
+    await supabase.rpc('update_processing_progress', {
+      p_file_id: fileRecord.id,
+      p_stage: 'upload',
+      p_status: 'completed',
+      p_message: `File uploaded: ${file.name} (${Math.round(file.size/1024)}KB)`,
+      p_metadata: { 
+        upload_size_bytes: file.size,
+        content_type: file.type,
+        storage_path: uploadData.path 
+      }
+    });
 
-    console.log('Sending webhook to n8n:', webhookUrl)
+    // Trigger the enhanced processing function
+    console.log('Triggering enhanced processing for file:', fileRecord.id);
 
-    // Send webhook in background
+    // Trigger the enhanced processing function in background
     EdgeRuntime.waitUntil(
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookPayload)
+      supabase.functions.invoke('process-file-v2', {
+        body: { fileId: fileRecord.id }
       }).then(response => {
-        console.log('Webhook response status:', response.status)
-        return response.text()
-      }).then(text => {
-        console.log('Webhook response:', text)
+        console.log('Processing function response:', response.data)
+        if (response.error) {
+          console.error('Processing function error:', response.error)
+        }
       }).catch(error => {
-        console.error('Webhook error:', error)
+        console.error('Failed to trigger processing:', error)
       })
     )
 
