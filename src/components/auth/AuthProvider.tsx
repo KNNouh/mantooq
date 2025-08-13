@@ -57,10 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
       
+      console.log('Admin check for user:', userId, 'Data:', data, 'Error:', error);
       setIsAdmin(!error && !!data);
     } catch (error) {
+      console.error('Error checking admin role:', error);
       setIsAdmin(false);
     }
   };
@@ -71,7 +73,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const redirectUrl = `${window.location.origin}/`;
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
     if (error) throw error;
   };
 

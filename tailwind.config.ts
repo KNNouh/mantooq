@@ -61,7 +61,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Qatar cultural colors
+				'qatar-maroon': 'hsl(0, 65%, 35%)',
+				'qatar-white': 'hsl(0, 0%, 98%)',
+				'cultural-gold': 'hsl(var(--cultural-gold))',
+				'cultural-desert': 'hsl(var(--cultural-desert))'
+			},
+			backgroundImage: {
+				'gradient-qatar': 'var(--gradient-qatar)',
+				'gradient-subtle': 'var(--gradient-subtle)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

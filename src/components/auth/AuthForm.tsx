@@ -6,24 +6,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from './AuthProvider';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 export const AuthForm: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      await signIn(email, password);
-      toast({ title: 'Success', description: 'Signed in successfully!' });
+      await signIn(formData.email, formData.password);
+      toast({
+        title: 'نجح تسجيل الدخول',
+        description: 'تم تسجيل دخولك بنجاح.',
+      });
+      navigate('/');
     } catch (error: any) {
-      toast({ 
-        title: 'Error', 
-        description: error.message || 'Failed to sign in',
-        variant: 'destructive' 
+      toast({
+        title: 'خطأ في تسجيل الدخول',
+        description: error.message === 'Invalid login credentials' ? 
+          'بيانات الدخول غير صحيحة' : 
+          error.message || 'فشل تسجيل الدخول',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -33,17 +52,31 @@ export const AuthForm: React.FC = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      await signUp(email, password);
-      toast({ 
-        title: 'Success', 
-        description: 'Account created! Please check your email to verify your account.' 
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'تم إنشاء الحساب',
+        description: 'يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.',
       });
     } catch (error: any) {
-      toast({ 
-        title: 'Error', 
-        description: error.message || 'Failed to create account',
-        variant: 'destructive' 
+      toast({
+        title: 'خطأ في إنشاء الحساب',
+        description: error.message === 'User already registered' ?
+          'المستخدم مسجل بالفعل' :
+          error.message || 'فشل إنشاء الحساب',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -51,77 +84,106 @@ export const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing In...' : 'Sign In'}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="w-full border-primary/10 shadow-lg">
+      <CardHeader className="text-center space-y-2">
+        <CardTitle className="text-2xl font-bold">
+          <span className="bg-gradient-qatar bg-clip-text text-transparent">
+            تسجيل الدخول
+          </span>
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          سجل دخولك أو أنشئ حساباً جديداً للمتابعة
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="signin" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              تسجيل الدخول
+            </TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              حساب جديد
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="signin" className="space-y-4 mt-6">
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email" className="text-right">البريد الإلكتروني</Label>
+                <Input
+                  id="signin-email"
+                  name="email"
+                  type="email"
+                  placeholder="أدخل بريدك الإلكتروني"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className="border-primary/20 focus:border-primary"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signin-password" className="text-right">كلمة المرور</Label>
+                <Input
+                  id="signin-password"
+                  name="password"
+                  type="password"
+                  placeholder="أدخل كلمة المرور"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="border-primary/20 focus:border-primary"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-qatar hover:opacity-90 transition-opacity" 
+                disabled={loading}
+              >
+                {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              </Button>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="signup" className="space-y-4 mt-6">
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-email" className="text-right">البريد الإلكتروني</Label>
+                <Input
+                  id="signup-email"
+                  name="email"
+                  type="email"
+                  placeholder="أدخل بريدك الإلكتروني"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className="border-primary/20 focus:border-primary"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password" className="text-right">كلمة المرور</Label>
+                <Input
+                  id="signup-password"
+                  name="password"
+                  type="password"
+                  placeholder="أنشئ كلمة مرور (6 أحرف على الأقل)"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  minLength={6}
+                  className="border-primary/20 focus:border-primary"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-qatar hover:opacity-90 transition-opacity" 
+                disabled={loading}
+              >
+                {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد'}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
