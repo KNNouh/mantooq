@@ -176,12 +176,14 @@ export const ChatInterface: React.FC = () => {
               {isAdmin && (
                 <>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     onClick={() => navigate('/admin')}
                     title="Admin Panel"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 mr-1" />
+                    Admin
                   </Button>
                   <Button
                     variant="outline"
