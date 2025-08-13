@@ -206,6 +206,10 @@ export type Database = {
         Args: { "": unknown[] }
         Returns: number
       }
+      has_admin_privileges: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _user_id: string
