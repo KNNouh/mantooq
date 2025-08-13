@@ -33,7 +33,7 @@ const AdminPanel: React.FC = () => {
   const [files, setFiles] = useState<KBFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingFile, setEditingFile] = useState<KBFile | null>(null);
-  const [editForm, setEditForm] = useState({ filename: '', lang: '', status: '' });
+  const [editForm, setEditForm] = useState({ filename: '', lang: '', status: '', newFile: null as File | null });
   const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
@@ -68,20 +68,66 @@ const AdminPanel: React.FC = () => {
     if (!editingFile) return;
 
     try {
-      const { error } = await supabase
-        .from('kb_files')
-        .update({
-          filename: editForm.filename,
-          lang: editForm.lang || null,
-          status: editForm.status
-        })
-        .eq('id', editingFile.id);
+      // If a new file is selected, replace the file in storage
+      if (editForm.newFile) {
+        // Delete the old file from storage
+        const { error: deleteError } = await supabase.storage
+          .from('kb-raw')
+          .remove([editingFile.storage_path]);
 
-      if (error) throw error;
+        if (deleteError) {
+          console.warn('Error deleting old file from storage:', deleteError);
+        }
+
+        // Upload the new file
+        const fileExt = editForm.newFile.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('kb-raw')
+          .upload(filePath, editForm.newFile);
+
+        if (uploadError) throw uploadError;
+
+        // Calculate file hashes
+        const arrayBuffer = await editForm.newFile.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const sha256 = Array.from(new Uint8Array(hashBuffer))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        // Update database with new file info
+        const { error } = await supabase
+          .from('kb_files')
+          .update({
+            filename: editForm.filename,
+            lang: editForm.lang || null,
+            status: 'pending', // Reset to pending for reprocessing
+            storage_path: filePath,
+            file_sha256: sha256,
+            file_md5: null // Will be recalculated during processing
+          })
+          .eq('id', editingFile.id);
+
+        if (error) throw error;
+      } else {
+        // Just update metadata
+        const { error } = await supabase
+          .from('kb_files')
+          .update({
+            filename: editForm.filename,
+            lang: editForm.lang || null,
+            status: editForm.status
+          })
+          .eq('id', editingFile.id);
+
+        if (error) throw error;
+      }
 
       toast({
         title: 'Success',
-        description: 'File updated successfully'
+        description: editForm.newFile ? 'File replaced successfully' : 'File updated successfully'
       });
 
       setEditingFile(null);
@@ -136,7 +182,8 @@ const AdminPanel: React.FC = () => {
     setEditForm({
       filename: file.filename,
       lang: file.lang || '',
-      status: file.status
+      status: file.status,
+      newFile: null
     });
   };
 
@@ -300,6 +347,18 @@ const AdminPanel: React.FC = () => {
                                     <option value="failed">Failed</option>
                                     <option value="archived">Archived</option>
                                   </select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="newFile">Replace File (Optional)</Label>
+                                  <Input
+                                    id="newFile"
+                                    type="file"
+                                    onChange={(e) => setEditForm({ ...editForm, newFile: e.target.files?.[0] || null })}
+                                    className="cursor-pointer"
+                                  />
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    Leave empty to only update metadata
+                                  </p>
                                 </div>
                                 <Button onClick={handleEditFile} className="w-full">
                                   Save Changes
