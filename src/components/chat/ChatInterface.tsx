@@ -170,6 +170,11 @@ export const ChatInterface: React.FC = () => {
       {/* Sidebar */}
       <div className="w-80 border-r bg-sidebar-background">
         <div className="p-4 border-b">
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted/50 rounded">
+              Debug: Admin={isAdmin ? '✅' : '❌'} | User={user?.email || 'None'}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Chat History</h2>
             <div className="flex gap-2">
