@@ -351,79 +351,93 @@ async function extractTextFromPDF(file: Blob): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Convert to string for pattern matching
-    const pdfString = new TextDecoder('latin1').decode(uint8Array);
+    // Convert to string using UTF-8 for better text handling
+    const pdfString = new TextDecoder('utf-8', { fatal: false }).decode(uint8Array);
     
-    // Enhanced PDF text extraction patterns
     let extractedText = '';
     
-    // Method 1: Look for text objects (BT...ET blocks)
-    const textBlocks = pdfString.match(/BT\s+(.*?)\s+ET/gs);
+    // Method 1: Look for text objects with proper handling
+    const textPattern = /BT\s+(.*?)\s+ET/gs;
+    const textBlocks = pdfString.match(textPattern);
+    
     if (textBlocks) {
       for (const block of textBlocks) {
-        // Extract text from Tj and TJ operators
-        const textOperators = block.match(/\[(.*?)\]\s*TJ|\((.*?)\)\s*Tj/g);
-        if (textOperators) {
-          for (const op of textOperators) {
-            let textContent = '';
-            
-            // Handle TJ (array of strings)
-            const tjMatch = op.match(/\[(.*?)\]\s*TJ/);
-            if (tjMatch) {
-              const arrayContent = tjMatch[1];
-              const strings = arrayContent.match(/\((.*?)\)/g);
-              if (strings) {
-                textContent = strings.map(s => s.slice(1, -1)).join('');
+        // Look for text strings in parentheses that are followed by text operators
+        const textStrings = block.match(/\(([^)]*)\)\s*(?:Tj|TJ)/g);
+        if (textStrings) {
+          for (const textString of textStrings) {
+            const match = textString.match(/\(([^)]*)\)/);
+            if (match && match[1]) {
+              let text = match[1]
+                .replace(/\\n/g, ' ')
+                .replace(/\\r/g, ' ')
+                .replace(/\\t/g, ' ')
+                .replace(/\\\(/g, '(')
+                .replace(/\\\)/g, ')')
+                .replace(/\\\\/g, '\\');
+              
+              // Only add text that contains readable characters
+              if (text.length > 1 && /[a-zA-Z0-9\s]/.test(text)) {
+                extractedText += text + ' ';
               }
             }
-            
-            // Handle Tj (single string)
-            const tjSingleMatch = op.match(/\((.*?)\)\s*Tj/);
-            if (tjSingleMatch) {
-              textContent = tjSingleMatch[1];
-            }
-            
-            if (textContent) {
-              extractedText += textContent.replace(/\\[nrt]/g, ' ') + ' ';
-            }
           }
         }
       }
     }
     
-    // Method 2: Look for stream objects with text content
+    // Method 2: Look for readable text in streams
     if (extractedText.length < 100) {
-      const streamMatches = pdfString.match(/stream\s+(.*?)\s+endstream/gs);
-      if (streamMatches) {
-        for (const stream of streamMatches) {
+      console.log('📄 Trying alternative extraction method...');
+      
+      // Look for stream content that might contain text
+      const streamPattern = /stream\s+(.*?)\s+endstream/gs;
+      const streams = pdfString.match(streamPattern);
+      
+      if (streams) {
+        for (const stream of streams) {
           const content = stream.replace(/^stream\s+/, '').replace(/\s+endstream$/, '');
-          // Look for readable text patterns
-          const readableText = content.match(/[A-Za-z\s]{3,}/g);
-          if (readableText && readableText.length > 5) {
-            extractedText += readableText.join(' ') + ' ';
+          
+          // Try to find readable text sequences
+          const readableMatches = content.match(/[A-Za-z][A-Za-z0-9\s.,!?;:'"()-]{5,}/g);
+          if (readableMatches) {
+            const validText = readableMatches
+              .filter(text => text.length > 5)
+              .join(' ');
+            
+            if (validText.length > extractedText.length) {
+              extractedText = validText;
+            }
           }
         }
       }
     }
     
-    // Method 3: Fallback - extract any readable text
+    // Method 3: Simple pattern matching for readable text
     if (extractedText.length < 50) {
-      const readableChunks = pdfString.match(/[A-Za-z][A-Za-z\s.,!?;:]{10,}/g);
-      if (readableChunks && readableChunks.length > 3) {
-        extractedText = readableChunks.join(' ');
+      console.log('📄 Using fallback text extraction...');
+      
+      // Look for sequences of readable characters
+      const readableSequences = pdfString.match(/[A-Za-z][A-Za-z0-9\s.,!?;:'"()-]{10,}/g);
+      if (readableSequences && readableSequences.length > 0) {
+        extractedText = readableSequences
+          .filter(seq => seq.length > 10)
+          .slice(0, 20) // Take first 20 sequences to avoid too much noise
+          .join(' ');
       }
     }
     
     // Clean up the extracted text
     extractedText = extractedText
       .replace(/\s+/g, ' ')
-      .replace(/[^\w\s.,!?;:()\-"']/g, '')
+      .replace(/[^\w\s.,!?;:()\-"']/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
     
     console.log(`📄 PDF extraction completed: ${extractedText.length} characters`);
     
     if (extractedText.length < 30) {
-      throw new Error(`PDF appears to be image-based or encrypted. Extracted only ${extractedText.length} characters. Please ensure the PDF contains selectable text.`);
+      throw new Error(`PDF text extraction failed. Only extracted ${extractedText.length} readable characters. This PDF may be image-based, encrypted, or have complex formatting. Please try converting it to a text file or ensure it contains selectable text.`);
     }
     
     return extractedText;
@@ -435,55 +449,69 @@ async function extractTextFromPDF(file: Blob): Promise<string> {
 }
 
 async function createIntelligentChunks(text: string, filename: string): Promise<string[]> {
-  const maxChunkSize = 900;
-  const overlapSize = 120;
+  const maxChunkSize = 800; // Reduced to be safer with token limits
+  const overlapSize = 100;
   const chunks: string[] = [];
   
-  // Smart sentence splitting that respects document structure
+  // If text is short enough, return as single chunk
+  if (text.length <= maxChunkSize) {
+    return [text];
+  }
+  
+  // Split into sentences first
   const sentences = text
     .split(/[.!?]+/)
     .map(s => s.trim())
-    .filter(s => s.length > 5);
+    .filter(s => s.length > 3);
   
   if (sentences.length === 0) {
-    return [text.slice(0, maxChunkSize)];
+    // Fallback: split by character limit
+    for (let i = 0; i < text.length; i += maxChunkSize - overlapSize) {
+      chunks.push(text.slice(i, i + maxChunkSize));
+    }
+    return chunks;
   }
   
   let currentChunk = '';
-  let currentSize = 0;
   
   for (let i = 0; i < sentences.length; i++) {
     const sentence = sentences[i] + '.';
-    const sentenceSize = sentence.length;
     
-    // If adding this sentence would exceed the limit, save current chunk
-    if (currentSize + sentenceSize > maxChunkSize && currentChunk.length > 0) {
+    // Check if adding this sentence would exceed the limit
+    if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk.length > 0) {
+      // Save current chunk
       chunks.push(currentChunk.trim());
       
-      // Create overlap by including the last few sentences
+      // Start new chunk with overlap
       const words = currentChunk.split(' ');
-      const overlapWords = words.slice(-Math.floor(overlapSize / 8));
+      const overlapWords = words.slice(-Math.floor(overlapSize / 6)); // Approximate word overlap
       currentChunk = overlapWords.join(' ') + ' ' + sentence;
-      currentSize = currentChunk.length;
     } else {
       currentChunk += (currentChunk ? ' ' : '') + sentence;
-      currentSize = currentChunk.length;
     }
   }
   
-  // Add the final chunk
+  // Add the final chunk if it has content
   if (currentChunk.trim().length > 0) {
     chunks.push(currentChunk.trim());
   }
   
-  // Ensure we have at least one chunk
-  if (chunks.length === 0) {
-    chunks.push(text.slice(0, maxChunkSize));
+  // Safety check: ensure no chunk exceeds the limit
+  const validChunks: string[] = [];
+  for (const chunk of chunks) {
+    if (chunk.length <= maxChunkSize) {
+      validChunks.push(chunk);
+    } else {
+      // Split oversized chunks
+      for (let i = 0; i < chunk.length; i += maxChunkSize - overlapSize) {
+        validChunks.push(chunk.slice(i, i + maxChunkSize));
+      }
+    }
   }
   
-  console.log(`🧩 Created ${chunks.length} intelligent chunks (avg size: ${Math.round(chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length)})`);
+  console.log(`🧩 Created ${validChunks.length} intelligent chunks (max size: ${Math.max(...validChunks.map(c => c.length))}, avg size: ${Math.round(validChunks.reduce((sum, chunk) => sum + chunk.length, 0) / validChunks.length)})`);
   
-  return chunks;
+  return validChunks;
 }
 
 async function processBatch(
@@ -499,45 +527,61 @@ async function processBatch(
     const chunkIndex = startIndex + i;
     const processingStart = Date.now();
     
-    // Estimate token count (rough approximation: 1 token ≈ 4 characters)
-    const estimatedTokens = Math.ceil(chunk.length / 4);
+    // More accurate token counting (approximately 1 token = 3.3 characters for English)
+    const estimatedTokens = Math.ceil(chunk.length / 3.3);
     
-    if (estimatedTokens > 8000) {
-      console.warn(`⚠️ Chunk ${chunkIndex} has ${estimatedTokens} estimated tokens, truncating...`);
-      const truncatedChunk = chunk.slice(0, 8000 * 4); // Keep it well under the limit
-      const embedding = await generateEmbedding(truncatedChunk, openaiApiKey);
+    console.log(`🔍 Processing chunk ${chunkIndex}: ${chunk.length} chars, ~${estimatedTokens} tokens`);
+    
+    if (estimatedTokens > 7500) { // Keep well under 8192 limit
+      console.warn(`⚠️ Chunk ${chunkIndex} has ${estimatedTokens} estimated tokens, truncating to ~7000 tokens...`);
+      const safeLength = Math.floor(7000 * 3.3); // ~7000 tokens worth of characters
+      const truncatedChunk = chunk.slice(0, safeLength);
       
-      results.push({
-        content: truncatedChunk,
-        metadata: {
-          file_id: fileId,
-          split_params: '900:120',
-          norm: 'v2',
-          chunk_index: chunkIndex,
-          original_length: chunk.length,
-          truncated: true
-        },
-        embedding,
-        tokenCount: Math.ceil(truncatedChunk.length / 4),
-        chunkIndex,
-        processingTimeMs: Date.now() - processingStart
-      });
+      try {
+        const embedding = await generateEmbedding(truncatedChunk, openaiApiKey);
+        
+        results.push({
+          content: truncatedChunk,
+          metadata: {
+            file_id: fileId,
+            split_params: '800:100',
+            norm: 'v2',
+            chunk_index: chunkIndex,
+            original_length: chunk.length,
+            truncated: true,
+            estimated_tokens: Math.ceil(truncatedChunk.length / 3.3)
+          },
+          embedding,
+          tokenCount: Math.ceil(truncatedChunk.length / 3.3),
+          chunkIndex,
+          processingTimeMs: Date.now() - processingStart
+        });
+      } catch (error) {
+        console.error(`❌ Failed to process truncated chunk ${chunkIndex}:`, error);
+        throw error;
+      }
     } else {
-      const embedding = await generateEmbedding(chunk, openaiApiKey);
-      
-      results.push({
-        content: chunk,
-        metadata: {
-          file_id: fileId,
-          split_params: '900:120',
-          norm: 'v2',
-          chunk_index: chunkIndex
-        },
-        embedding,
-        tokenCount: estimatedTokens,
-        chunkIndex,
-        processingTimeMs: Date.now() - processingStart
-      });
+      try {
+        const embedding = await generateEmbedding(chunk, openaiApiKey);
+        
+        results.push({
+          content: chunk,
+          metadata: {
+            file_id: fileId,
+            split_params: '800:100',
+            norm: 'v2',
+            chunk_index: chunkIndex,
+            estimated_tokens: estimatedTokens
+          },
+          embedding,
+          tokenCount: estimatedTokens,
+          chunkIndex,
+          processingTimeMs: Date.now() - processingStart
+        });
+      } catch (error) {
+        console.error(`❌ Failed to process chunk ${chunkIndex}:`, error);
+        throw error;
+      }
     }
   }
   
