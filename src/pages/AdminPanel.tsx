@@ -12,6 +12,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from '@/components/chat/AdminUpload';
+import { UserManagement } from '@/components/admin/UserManagement';
 import { useNavigate } from 'react-router-dom';
 
 interface KBFile {
@@ -194,18 +195,27 @@ const AdminPanel: React.FC = () => {
           </Button>
         </div>
 
-        {showUpload && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Upload New File</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminUpload />
-            </CardContent>
-          </Card>
-        )}
+        <div className="space-y-6">
+          {showUpload && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload New File</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminUpload />
+              </CardContent>
+            </Card>
+          )}
 
-        <Card>
+          <UserManagement onUserPromoted={() => {
+            // Optionally refresh admin state or show notification
+            toast({
+              title: 'User Roles Updated',
+              description: 'User roles have been updated successfully'
+            });
+          }} />
+
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
@@ -327,7 +337,8 @@ const AdminPanel: React.FC = () => {
               </Table>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );
