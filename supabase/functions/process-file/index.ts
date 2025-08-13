@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+// Import PDF.js for PDF text extraction
+import { getDocument } from 'https://cdn.skypack.dev/pdfjs-dist@4.0.379/legacy/build/pdf';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,12 +24,31 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let requestBody: any;
   try {
-    const { fileId } = await req.json();
-    
-    if (!fileId) {
-      throw new Error('File ID is required');
-    }
+    requestBody = await req.json();
+  } catch (error) {
+    console.error('Error parsing request body:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Invalid request body',
+      success: false 
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { fileId } = requestBody;
+  
+  if (!fileId) {
+    return new Response(JSON.stringify({ 
+      error: 'File ID is required',
+      success: false 
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -146,18 +167,20 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing file:', error);
 
-    // Try to update file status to failed if we have the fileId
+    // Update file status to failed using the fileId from requestBody
     try {
-      const { fileId } = await req.json();
-      if (fileId) {
+      if (requestBody?.fileId) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         
+        console.log('Updating file status to failed for:', requestBody.fileId);
         await supabase
           .from('kb_files')
           .update({ status: 'failed' })
-          .eq('id', fileId);
+          .eq('id', requestBody.fileId);
+        
+        console.log('File status updated to failed successfully');
       }
     } catch (updateError) {
       console.error('Error updating file status to failed:', updateError);
@@ -175,24 +198,89 @@ serve(async (req) => {
 
 async function extractTextFromFile(file: Blob, filename: string): Promise<string> {
   const extension = filename.toLowerCase().split('.').pop();
+  console.log('Extracting text from file:', filename, 'extension:', extension);
   
   switch (extension) {
     case 'txt':
     case 'md':
+      console.log('Processing as text file');
       return await file.text();
     
     case 'pdf':
-      // For PDF files, we'll need to implement PDF text extraction
-      // For now, we'll throw an error suggesting manual text extraction
-      throw new Error('PDF processing not yet implemented. Please convert to text file.');
+      console.log('Processing PDF file');
+      return await extractTextFromPDF(file);
     
     case 'docx':
-      // For DOCX files, we'll need to implement DOCX text extraction
-      throw new Error('DOCX processing not yet implemented. Please convert to text file.');
+      console.log('Processing DOCX file');
+      return await extractTextFromDOCX(file);
     
     default:
+      console.log('Processing as default text file');
       // Try to read as text
       return await file.text();
+  }
+}
+
+async function extractTextFromPDF(file: Blob): Promise<string> {
+  try {
+    console.log('Starting PDF text extraction, file size:', file.size);
+    
+    // Convert blob to array buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    console.log('PDF file loaded, attempting to parse...');
+    
+    // Use PDF.js to extract text
+    const pdf = await getDocument({ data: uint8Array }).promise;
+    console.log('PDF parsed successfully, pages:', pdf.numPages);
+    
+    let fullText = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      console.log(`Processing page ${i}/${pdf.numPages}`);
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .filter((item: any) => item.str)
+        .map((item: any) => item.str)
+        .join(' ');
+      
+      fullText += pageText + '\n\n';
+    }
+    
+    console.log('PDF text extraction completed, total length:', fullText.length);
+    
+    if (fullText.trim().length === 0) {
+      throw new Error('No text content found in PDF. The PDF might be image-based or corrupted.');
+    }
+    
+    return fullText.trim();
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
+  }
+}
+
+async function extractTextFromDOCX(file: Blob): Promise<string> {
+  try {
+    console.log('Starting DOCX text extraction...');
+    
+    // For now, we'll provide a basic implementation
+    // In a production environment, you'd want to use a proper DOCX parser
+    const text = await file.text();
+    
+    // Simple text extraction - this is very basic and won't work for binary DOCX files
+    // This is just a placeholder until a proper DOCX parser is implemented
+    if (text.includes('PK')) {
+      // This looks like a ZIP/DOCX file
+      throw new Error('DOCX processing requires a proper parser. Please convert to text file for now.');
+    }
+    
+    return text;
+  } catch (error) {
+    console.error('Error extracting text from DOCX:', error);
+    throw new Error(`Failed to extract text from DOCX: ${error.message}`);
   }
 }
 
