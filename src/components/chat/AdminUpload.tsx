@@ -55,9 +55,9 @@ export const AdminUpload: React.FC = () => {
         });
       }, 200);
 
-      // Call the admin-upload edge function
+      // Call the n8n webhook
       const response = await fetch(
-        `https://iykcvtemszqklsmwmzid.supabase.co/functions/v1/admin-upload`,
+        'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d',
         {
           method: 'POST',
           headers: {
