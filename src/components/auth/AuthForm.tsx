@@ -58,9 +58,7 @@ export const AuthForm: React.FC = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          data: {},
-          captchaToken: undefined,
-          emailRedirectTo: undefined
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
       
@@ -76,7 +74,7 @@ export const AuthForm: React.FC = () => {
       } else {
         toast({
           title: 'تم إنشاء الحساب',
-          description: 'تم إنشاء حسابك بنجاح.',
+          description: 'يرجى تأكيد بريدك الإلكتروني للمتابعة.',
         });
       }
     } catch (error: any) {
