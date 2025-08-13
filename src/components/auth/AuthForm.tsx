@@ -58,7 +58,9 @@ export const AuthForm: React.FC = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: undefined // Disable email confirmation
+          data: {},
+          captchaToken: undefined,
+          emailRedirectTo: undefined
         }
       });
       
