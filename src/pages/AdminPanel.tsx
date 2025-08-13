@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from '@/components/chat/AdminUpload';
 import { UserManagement } from '@/components/admin/UserManagement';
+import { SearchTest } from '@/components/admin/SearchTest';
 import { useNavigate } from 'react-router-dom';
 
 interface KBFile {

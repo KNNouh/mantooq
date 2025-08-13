@@ -83,8 +83,29 @@ export const AdminUpload: React.FC<AdminUploadProps> = ({ onFileUploaded }) => {
       
       toast({
         title: 'Success',
-        description: `File uploaded successfully! Processing started.`,
+        description: 'File uploaded successfully! Processing will start automatically.'
       });
+
+      // Automatically start processing the uploaded file
+      if (result.fileId) {
+        try {
+          await supabase.functions.invoke('process-file', {
+            body: { fileId: result.fileId }
+          });
+          
+          toast({
+            title: 'Processing Started',
+            description: 'File processing and embedding generation started in the background.'
+          });
+        } catch (processError) {
+          console.error('Error starting file processing:', processError);
+          toast({
+            title: 'Processing Error',
+            description: 'File uploaded but processing failed to start. You can manually process it from the admin panel.',
+            variant: 'destructive'
+          });
+        }
+      }
 
       // Reset form
       setFile(null);
