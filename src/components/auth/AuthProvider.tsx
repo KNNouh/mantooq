@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,13 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRoles(session.user.id);
       }
       setLoading(false);
     });
@@ -40,9 +42,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRoles(session.user.id);
       } else {
         setIsAdmin(false);
+        setIsSuperAdmin(false);
       }
       setLoading(false);
     });
@@ -50,37 +53,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = async (userId: string) => {
+  const checkUserRoles = async (userId: string) => {
     try {
-      console.log('🔍 Checking admin role for user:', userId);
+      console.log('🔍 Checking user roles for user:', userId);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
+        .eq('user_id', userId);
       
-      console.log('📊 Admin check result:', { 
+      console.log('📊 User roles check result:', { 
         userId, 
         data, 
-        error: error?.message || null, 
-        hasAdminRole: !error && !!data 
+        error: error?.message || null
       });
       
       if (error) {
-        console.error('❌ Error checking admin role:', error);
+        console.error('❌ Error checking user roles:', error);
         setIsAdmin(false);
+        setIsSuperAdmin(false);
         return;
       }
       
-      const hasAdmin = !!data;
-      setIsAdmin(hasAdmin);
-      console.log(hasAdmin ? '✅ User is admin' : '❌ User is not admin');
+      const roles = data?.map(r => r.role) || [];
+      const hasAdmin = roles.includes('admin');
+      const hasSuperAdmin = roles.includes('super_admin');
+      
+      setIsAdmin(hasAdmin || hasSuperAdmin); // Super admin has admin privileges
+      setIsSuperAdmin(hasSuperAdmin);
+      
+      console.log('✅ User roles:', { 
+        roles, 
+        isAdmin: hasAdmin || hasSuperAdmin, 
+        isSuperAdmin: hasSuperAdmin 
+      });
       
     } catch (error) {
-      console.error('💥 Exception while checking admin role:', error);
+      console.error('💥 Exception while checking user roles:', error);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
     }
   };
 
@@ -113,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     isAdmin,
+    isSuperAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

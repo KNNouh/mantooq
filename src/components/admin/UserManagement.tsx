@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Crown, UserMinus, Plus } from 'lucide-react';
+import { Crown, UserMinus, Plus, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface UserWithRole {
   id: string;
@@ -23,6 +24,7 @@ interface UserManagementProps {
 }
 
 export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }) => {
+  const { isSuperAdmin } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [promoting, setPromoting] = useState<string | null>(null);
@@ -163,19 +165,37 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
   };
 
   const isAdmin = (user: UserWithRole) => user.roles.includes('admin');
+  const isSuperAdminUser = (user: UserWithRole) => user.roles.includes('super_admin');
 
   const getRoleBadges = (roles: string[]) => {
     return roles.map(role => (
       <Badge 
         key={role} 
-        variant={role === 'admin' ? 'default' : 'secondary'}
-        className={role === 'admin' ? 'bg-yellow-500 text-yellow-900' : ''}
+        variant={role === 'super_admin' ? 'default' : role === 'admin' ? 'secondary' : 'outline'}
+        className={
+          role === 'super_admin' ? 'bg-purple-600 text-white' :
+          role === 'admin' ? 'bg-yellow-500 text-yellow-900' : 
+          ''
+        }
       >
+        {role === 'super_admin' && <Shield className="w-3 h-3 mr-1" />}
         {role === 'admin' && <Crown className="w-3 h-3 mr-1" />}
-        {role}
+        {role === 'super_admin' ? 'Super Admin' : role}
       </Badge>
     ));
   };
+
+  // Only show the component if user is super admin
+  if (!isSuperAdmin) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <Shield className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Only super administrators can manage user roles.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -249,52 +269,57 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
                       {getRoleBadges(user.roles)}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {!isAdmin(user) ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => promoteToAdmin(user.id)}
-                          disabled={promoting === user.id}
-                        >
-                          <Crown className="w-4 h-4 mr-1" />
-                          {promoting === user.id ? 'Promoting...' : 'Make Admin'}
-                        </Button>
-                      ) : (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={demoting === user.id}
-                            >
-                              <UserMinus className="w-4 h-4 mr-1" />
-                              Remove Admin
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Remove Admin Role</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to remove admin privileges from this user? 
-                                They will lose access to the admin panel and admin functions.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => removeAdminRole(user.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Remove Admin
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </TableCell>
+                   <TableCell>
+                     <div className="flex gap-2">
+                       {isSuperAdminUser(user) ? (
+                         <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                           <Shield className="w-3 h-3 mr-1" />
+                           Cannot modify
+                         </Badge>
+                       ) : !isAdmin(user) ? (
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => promoteToAdmin(user.id)}
+                           disabled={promoting === user.id}
+                         >
+                           <Crown className="w-4 h-4 mr-1" />
+                           {promoting === user.id ? 'Promoting...' : 'Make Admin'}
+                         </Button>
+                       ) : (
+                         <AlertDialog>
+                           <AlertDialogTrigger asChild>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               disabled={demoting === user.id}
+                             >
+                               <UserMinus className="w-4 h-4 mr-1" />
+                               Remove Admin
+                             </Button>
+                           </AlertDialogTrigger>
+                           <AlertDialogContent>
+                             <AlertDialogHeader>
+                               <AlertDialogTitle>Remove Admin Role</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                 Are you sure you want to remove admin privileges from this user? 
+                                 They will lose access to the admin panel and admin functions.
+                               </AlertDialogDescription>
+                             </AlertDialogHeader>
+                             <AlertDialogFooter>
+                               <AlertDialogCancel>Cancel</AlertDialogCancel>
+                               <AlertDialogAction
+                                 onClick={() => removeAdminRole(user.id)}
+                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                               >
+                                 Remove Admin
+                               </AlertDialogAction>
+                             </AlertDialogFooter>
+                           </AlertDialogContent>
+                         </AlertDialog>
+                       )}
+                     </div>
+                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
