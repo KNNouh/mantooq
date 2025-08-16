@@ -31,6 +31,7 @@ const OptimizedChatInterface = memo(() => {
     loading: conversationsLoading,
     loadingMessages,
     loadConversations,
+    loadMessages,
     selectConversation,
     addMessage,
     createNewConversation,
@@ -52,7 +53,7 @@ const OptimizedChatInterface = memo(() => {
     if (!currentConversationId || !user) return;
 
     const channel = supabase
-      .channel(`messages-${currentConversationId}`)
+      .channel(`messages-realtime-${currentConversationId}`)
       .on(
         'postgres_changes',
         {
@@ -63,7 +64,13 @@ const OptimizedChatInterface = memo(() => {
         },
         (payload) => {
           console.log('Real-time message received:', payload);
-          // The useOptimizedConversations hook handles message updates
+          const newMessage = payload.new as Message;
+          
+          // Update messages via the hook (this will trigger a re-fetch)
+          if (newMessage.role === 'assistant') {
+            // Refresh messages when assistant responds
+            loadMessages(currentConversationId);
+          }
         }
       )
       .subscribe();
@@ -71,7 +78,7 @@ const OptimizedChatInterface = memo(() => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentConversationId, user]);
+  }, [currentConversationId, user, loadMessages]);
 
   // Load conversations when user changes
   useEffect(() => {
@@ -79,6 +86,13 @@ const OptimizedChatInterface = memo(() => {
       loadConversations();
     }
   }, [user, loadConversations]);
+
+  // Set current conversation when selecting one
+  useEffect(() => {
+    if (currentConversationId) {
+      loadMessages(currentConversationId);
+    }
+  }, [currentConversationId, loadMessages]);
 
   // Optimized message sending with better error handling
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
@@ -95,24 +109,28 @@ const OptimizedChatInterface = memo(() => {
       // Create new conversation if none exists
       if (!conversationId) {
         conversationId = await createNewConversation(message);
+        // Don't call selectConversation here, it will trigger loadMessages
+        // which we don't want since we're about to add the message
       }
 
       // Add user message
       await addMessage(conversationId, 'user', message);
 
-      // Trigger webhook to get AI response
-      const { data, error } = await supabase.functions.invoke('trigger-chat-response', {
+      // Trigger webhook to get AI response - now async so UI responds immediately
+      supabase.functions.invoke('trigger-chat-response', {
         body: {
           message,
           conversationId
         }
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error triggering chat response:', error);
+          // Add error message to chat
+          addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
+        }
+      }).catch(error => {
+        console.error('Webhook error:', error);
       });
-
-      if (error) {
-        console.error('Error triggering chat response:', error);
-        // Add error message to chat
-        await addMessage(conversationId, 'assistant', 'Sorry, I encountered an error. Please try again.');
-      }
 
     } catch (error) {
       console.error('Error sending message:', error);

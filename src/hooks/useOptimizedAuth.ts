@@ -17,9 +17,9 @@ interface OptimizedAuthReturn {
   signOut: () => Promise<void>;
 }
 
-// Cache for user roles to avoid repeated queries
+// Cache for user roles with longer TTL to reduce API calls
 const userRolesCache = new Map<string, { roles: UserRoles; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes - much longer for user roles
 
 export function useOptimizedAuth(): OptimizedAuthReturn {
   const [user, setUser] = useState<User | null>(null);

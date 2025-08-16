@@ -79,13 +79,7 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
   }, [userId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
-    // Check cache first
-    const cached = messagesCache.get(conversationId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      setMessages(cached.data);
-      return;
-    }
-
+    // Always fetch fresh messages for real-time conversations
     setLoadingMessages(true);
     try {
       const { data, error } = await supabase
@@ -98,7 +92,7 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
 
       const messagesData = data || [];
       
-      // Cache the result
+      // Update cache with fresh data
       messagesCache.set(conversationId, {
         data: messagesData,
         timestamp: Date.now()
@@ -135,12 +129,22 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
 
       if (error) throw error;
 
-      // Update messages state optimistically
+      // Update messages state immediately and invalidate cache
       const newMessage = data as Message;
-      setMessages(prev => [...prev, newMessage]);
-      
-      // Invalidate cache for this conversation
-      messagesCache.delete(conversationId);
+      setMessages(prev => {
+        // Check if message already exists to avoid duplicates
+        const exists = prev.some(msg => msg.id === newMessage.id);
+        if (!exists) {
+          const updated = [...prev, newMessage];
+          // Update cache with new message list
+          messagesCache.set(conversationId, {
+            data: updated,
+            timestamp: Date.now()
+          });
+          return updated;
+        }
+        return prev;
+      });
       
     } catch (error) {
       console.error('Error adding message:', error);
