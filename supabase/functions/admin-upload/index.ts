@@ -91,17 +91,13 @@ Deno.serve(async (req) => {
     // Generate MD5-like hash using SHA-256 (truncated for compatibility)
     const md5Hex = sha256Hex.substring(0, 32)
 
-    // Create kb_files record with enhanced tracking
+    // Create kb_files record with basic information
     const { data: fileRecord, error: fileError } = await supabase
       .from('kb_files')
       .insert({
         filename: file.name,
         storage_path: uploadData.path,
-        status: 'pending',
-        requested_by: user.id,
-        file_md5: md5Hex,
-        file_sha256: sha256Hex,
-        file_size_bytes: file.size
+        status: 'pending'
       })
       .select()
       .single()
@@ -117,19 +113,6 @@ Deno.serve(async (req) => {
     }
 
     console.log('File record created:', fileRecord.id)
-
-    // Log the upload completion
-    await supabase.rpc('update_processing_progress', {
-      p_file_id: fileRecord.id,
-      p_stage: 'upload',
-      p_status: 'completed',
-      p_message: `File uploaded: ${file.name} (${Math.round(file.size/1024)}KB)`,
-      p_metadata: { 
-        upload_size_bytes: file.size,
-        content_type: file.type,
-        storage_path: uploadData.path 
-      }
-    });
 
     return new Response(JSON.stringify({
       success: true,

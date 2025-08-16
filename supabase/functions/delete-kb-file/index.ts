@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Delete related records first (documents, processing_log)
+    // Delete related documents
     console.log('Deleting related documents...');
     const { error: documentsError } = await supabase
       .from('documents')
@@ -85,16 +85,6 @@ Deno.serve(async (req) => {
 
     if (documentsError) {
       console.error('Error deleting documents:', documentsError);
-    }
-
-    console.log('Deleting processing logs...');
-    const { error: logsError } = await supabase
-      .from('processing_log')
-      .delete()
-      .eq('file_id', fileId);
-
-    if (logsError) {
-      console.error('Error deleting processing logs:', logsError);
     }
 
     // Delete file from storage

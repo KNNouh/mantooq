@@ -74,12 +74,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update file status to indicate manual processing requested
+    // Update file status to processing
     const { error: updateError } = await supabase
       .from('kb_files')
       .update({ 
-        manual_processing_requested: true,
-        webhook_triggered_at: new Date().toISOString(),
         status: 'processing'
       })
       .eq('id', fileId);
@@ -92,12 +90,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Prepare webhook payload for n8n
+    // Prepare webhook payload for n8n with basic file information
     const webhookPayload = {
       fileId: file.id,
       filename: file.filename,
       storagePath: file.storage_path,
-      fileSize: file.file_size_bytes,
       requestedBy: user.id,
       timestamp: new Date().toISOString(),
       supabaseUrl: supabaseUrl,
@@ -114,7 +111,6 @@ Deno.serve(async (req) => {
       fileId: webhookPayload.fileId,
       filename: webhookPayload.filename,
       storagePath: webhookPayload.storagePath,
-      fileSize: webhookPayload.fileSize.toString(),
       requestedBy: webhookPayload.requestedBy,
       timestamp: webhookPayload.timestamp,
       supabaseUrl: webhookPayload.supabaseUrl,
@@ -128,17 +124,19 @@ Deno.serve(async (req) => {
 
       const responseData = await webhookResponse.text();
       
-      // Log webhook response
+      // Log webhook response in chat_webhook_log table
       await supabase
-        .from('kb_files')
-        .update({
+        .from('chat_webhook_log')
+        .insert({
+          user_id: user.id,
+          message_content: `File processing webhook triggered for ${file.filename}`,
+          status: webhookResponse.status === 200 ? 'success' : 'failed',
           webhook_response: {
             status: webhookResponse.status,
             response: responseData,
             timestamp: new Date().toISOString()
           }
-        })
-        .eq('id', fileId);
+        });
 
       console.log('n8n webhook response:', {
         status: webhookResponse.status,
@@ -161,14 +159,23 @@ Deno.serve(async (req) => {
     } catch (webhookError) {
       console.error('Failed to trigger n8n webhook:', webhookError);
       
-      // Update file status to failed
+      // Update file status to failed and log error
       await supabase
         .from('kb_files')
         .update({
-          status: 'failed',
-          error_message: `Webhook failed: ${webhookError.message}`
+          status: 'failed'
         })
         .eq('id', fileId);
+
+      // Log error in chat_webhook_log table
+      await supabase
+        .from('chat_webhook_log')
+        .insert({
+          user_id: user.id,
+          message_content: `File processing webhook failed for ${file.filename}`,
+          status: 'failed',
+          error_message: webhookError.message
+        });
 
       return new Response(
         JSON.stringify({

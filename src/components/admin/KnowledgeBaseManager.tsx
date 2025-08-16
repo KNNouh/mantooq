@@ -11,14 +11,9 @@ interface KBFile {
   id: string;
   filename: string;
   status: string;
-  file_size_bytes: number;
   created_at: string;
-  processing_completed_at?: string;
-  total_chunks: number;
-  processed_chunks: number;
-  manual_processing_requested: boolean;
-  webhook_triggered_at?: string;
-  error_message?: string;
+  storage_path: string;
+  updated_at: string;
 }
 
 const KnowledgeBaseManager = () => {
@@ -30,8 +25,7 @@ const KnowledgeBaseManager = () => {
     totalFiles: 0,
     activeFiles: 0,
     processingFiles: 0,
-    failedFiles: 0,
-    totalSize: 0
+    failedFiles: 0
   });
   const { toast } = useToast();
 
@@ -59,14 +53,12 @@ const KnowledgeBaseManager = () => {
       const activeFiles = data?.filter(f => f.status === 'active').length || 0;
       const processingFiles = data?.filter(f => f.status === 'processing').length || 0;
       const failedFiles = data?.filter(f => f.status === 'failed').length || 0;
-      const totalSize = data?.reduce((sum, f) => sum + (f.file_size_bytes || 0), 0) || 0;
 
       setStats({
         totalFiles,
         activeFiles,
         processingFiles,
-        failedFiles,
-        totalSize
+        failedFiles
       });
     } catch (error) {
       console.error('Error:', error);
@@ -183,12 +175,8 @@ const KnowledgeBaseManager = () => {
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   const getStatusIcon = (status: string) => {
@@ -218,7 +206,7 @@ const KnowledgeBaseManager = () => {
   };
 
   const canTriggerProcessing = (file: KBFile) => {
-    return ['pending', 'uploaded', 'failed'].includes(file.status) && !file.manual_processing_requested;
+    return ['pending', 'failed'].includes(file.status);
   };
 
   if (loading) {
@@ -243,7 +231,7 @@ const KnowledgeBaseManager = () => {
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -292,19 +280,6 @@ const KnowledgeBaseManager = () => {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Size</p>
-                <p className="text-2xl font-bold">{formatFileSize(stats.totalSize)}</p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">DB</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Files List */}
@@ -338,30 +313,15 @@ const KnowledgeBaseManager = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{file.filename}</p>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>{formatFileSize(file.file_size_bytes)}</span>
-                        <span>
-                          {new Date(file.created_at).toLocaleDateString()}
-                        </span>
-                        {file.total_chunks > 0 && (
-                          <span>
-                            {file.processed_chunks}/{file.total_chunks} chunks
-                          </span>
-                        )}
+                        <span>Created: {formatDate(file.created_at)}</span>
+                        <span>Updated: {formatDate(file.updated_at)}</span>
                       </div>
-                      {file.error_message && (
-                        <p className="text-sm text-red-600 mt-1">{file.error_message}</p>
-                      )}
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <Badge className={getStatusColor(file.status)}>
                         {file.status}
                       </Badge>
-                      {file.manual_processing_requested && (
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                          Manual
-                        </Badge>
-                      )}
                     </div>
                   </div>
                   
