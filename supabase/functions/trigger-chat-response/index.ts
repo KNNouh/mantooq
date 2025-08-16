@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     console.log('Sending chat message to n8n:', webhookPayload);
 
     // Send webhook to n8n
-    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/46309c84-bc23-4209-b580-082dc8156cc3';
+    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/1705f38d-c9ce-4c62-b5b7-f757497ad881';
     
     try {
       const webhookResponse = await fetch(webhookUrl, {

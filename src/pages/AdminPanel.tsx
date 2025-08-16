@@ -22,9 +22,6 @@ interface KBFile {
   status: string;
   created_at: string;
   updated_at: string;
-  file_md5: string;
-  file_sha256: string;
-  lang: string;
   storage_path: string;
 }
 
@@ -34,7 +31,7 @@ const AdminPanel: React.FC = () => {
   const [files, setFiles] = useState<KBFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingFile, setEditingFile] = useState<KBFile | null>(null);
-  const [editForm, setEditForm] = useState({ filename: '', lang: '', status: '', newFile: null as File | null });
+  const [editForm, setEditForm] = useState({ filename: '', status: '', newFile: null as File | null });
   const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
@@ -103,11 +100,8 @@ const AdminPanel: React.FC = () => {
           .from('kb_files')
           .update({
             filename: editForm.filename,
-            lang: editForm.lang || null,
             status: 'pending', // Reset to pending for reprocessing
-            storage_path: filePath,
-            file_sha256: sha256,
-            file_md5: null // Will be recalculated during processing
+            storage_path: filePath
           })
           .eq('id', editingFile.id);
 
@@ -118,7 +112,6 @@ const AdminPanel: React.FC = () => {
           .from('kb_files')
           .update({
             filename: editForm.filename,
-            lang: editForm.lang || null,
             status: editForm.status
           })
           .eq('id', editingFile.id);
@@ -210,7 +203,6 @@ const AdminPanel: React.FC = () => {
     setEditingFile(file);
     setEditForm({
       filename: file.filename,
-      lang: file.lang || '',
       status: file.status,
       newFile: null
     });
@@ -318,7 +310,7 @@ const AdminPanel: React.FC = () => {
                   <TableRow>
                     <TableHead>Filename</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Language</TableHead>
+                    <TableHead>Updated</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -328,7 +320,7 @@ const AdminPanel: React.FC = () => {
                     <TableRow key={file.id}>
                       <TableCell className="font-medium">{file.filename}</TableCell>
                       <TableCell>{getStatusBadge(file.status)}</TableCell>
-                      <TableCell>{file.lang || 'N/A'}</TableCell>
+                      <TableCell>{new Date(file.updated_at).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(file.created_at).toLocaleDateString()}</TableCell>
                        <TableCell>
                          <div className="flex gap-2">
@@ -353,15 +345,6 @@ const AdminPanel: React.FC = () => {
                                     id="filename"
                                     value={editForm.filename}
                                     onChange={(e) => setEditForm({ ...editForm, filename: e.target.value })}
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="lang">Language</Label>
-                                  <Input
-                                    id="lang"
-                                    value={editForm.lang}
-                                    onChange={(e) => setEditForm({ ...editForm, lang: e.target.value })}
-                                    placeholder="e.g., en, ar, fr"
                                   />
                                 </div>
                                 <div>

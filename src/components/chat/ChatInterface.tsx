@@ -136,13 +136,29 @@ export const ChatInterface: React.FC = () => {
       const userMessage = await addMessage(conversationId, 'user', messageContent);
       setMessages(prev => [...prev, userMessage]);
 
-      // Simulate AI response (replace with actual AI integration)
-      setTimeout(async () => {
-        const aiResponse = `I received your message: "${messageContent}". This is a simulated response. In a real implementation, this would be connected to your AI service.`;
-        const assistantMessage = await addMessage(conversationId!, 'assistant', aiResponse);
-        setMessages(prev => [...prev, assistantMessage]);
+      // Send to n8n via webhook
+      try {
+        const { data, error } = await supabase.functions.invoke('trigger-chat-response', {
+          body: { 
+            message: messageContent, 
+            conversationId: conversationId 
+          }
+        });
+        
+        if (error) {
+          console.error('Error calling webhook:', error);
+          toast({
+            title: 'Warning',
+            description: 'Message sent but webhook failed',
+            variant: 'destructive'
+          });
+        }
+        
         setLoading(false);
-      }, 1000);
+      } catch (error) {
+        console.error('Error calling n8n webhook:', error);
+        setLoading(false);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);

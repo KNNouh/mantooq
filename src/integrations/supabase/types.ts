@@ -55,6 +55,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          conversation_history: Json | null
           created_at: string
           id: string
           title: string | null
@@ -62,6 +63,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          conversation_history?: Json | null
           created_at?: string
           id?: string
           title?: string | null
@@ -69,6 +71,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          conversation_history?: Json | null
           created_at?: string
           id?: string
           title?: string | null
