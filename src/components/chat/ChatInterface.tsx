@@ -45,6 +45,39 @@ export const ChatInterface: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!currentConversationId) return;
+
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${currentConversationId}`
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          // Only add if it's not already in our messages (avoid duplicates)
+          setMessages(prevMessages => {
+            const exists = prevMessages.some(msg => msg.id === newMessage.id);
+            if (!exists) {
+              return [...prevMessages, newMessage];
+            }
+            return prevMessages;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentConversationId]);
+
   const loadConversations = async () => {
     try {
       const { data, error } = await supabase
