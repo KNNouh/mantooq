@@ -6,6 +6,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  conversation_id?: string;
 }
 
 interface Conversation {
@@ -196,6 +197,61 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
       setCurrentConversationId(null);
     }
   }, [userId, loadConversations]);
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!userId) return;
+
+    console.log('Setting up real-time subscription for user:', userId);
+    
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('New message received via realtime:', payload);
+          const newMessage = payload.new as Message;
+          
+          // Only add assistant messages to prevent duplicates (user messages are added optimistically)
+          if (newMessage.role === 'assistant' && currentConversationId && newMessage.conversation_id === currentConversationId) {
+            console.log('Adding assistant message to state immediately:', newMessage);
+            
+            setMessages(prevMessages => {
+              // Check if message already exists to prevent duplicates
+              if (prevMessages.find(msg => msg.id === newMessage.id)) {
+                return prevMessages;
+              }
+              return [...prevMessages, newMessage];
+            });
+
+            // Update cache immediately
+            if (messagesCache.has(currentConversationId)) {
+              const cached = messagesCache.get(currentConversationId);
+              if (cached && !cached.data.find(msg => msg.id === newMessage.id)) {
+                messagesCache.set(currentConversationId, {
+                  data: [...cached.data, newMessage],
+                  timestamp: Date.now()
+                });
+              }
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [userId, currentConversationId]);
 
   const memoizedReturn = useMemo(() => ({
     conversations,
