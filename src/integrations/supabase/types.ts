@@ -119,24 +119,39 @@ export type Database = {
       kb_files: {
         Row: {
           created_at: string | null
+          error_message: string | null
+          file_size_bytes: number | null
           filename: string
           id: string
+          processing_completed_at: string | null
+          processing_started_at: string | null
+          retry_count: number | null
           status: string
           storage_path: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
           filename: string
           id?: string
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
+          retry_count?: number | null
           status?: string
           storage_path: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
           filename?: string
           id?: string
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
+          retry_count?: number | null
           status?: string
           storage_path?: string
           updated_at?: string | null
@@ -174,6 +189,47 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      processing_log: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          file_id: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          stage: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          file_id?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stage: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          file_id?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stage?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processing_log_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "kb_files"
             referencedColumns: ["id"]
           },
         ]
