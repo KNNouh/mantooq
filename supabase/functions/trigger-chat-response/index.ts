@@ -77,74 +77,73 @@ Deno.serve(async (req) => {
 
     console.log('Sending chat message to n8n:', webhookPayload);
 
-    // Send webhook to n8n
+    // Send webhook to n8n asynchronously for better performance
     const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/1705f38d-c9ce-4c62-b5b7-f757497ad881';
     
-    try {
-      const webhookResponse = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookPayload),
-      });
+    // Return immediate response for better UX
+    const sendWebhookAsync = async () => {
+      try {
+        const webhookResponse = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookPayload),
+        });
 
-      const responseData = await webhookResponse.text();
-      
-      // Update log with webhook response
-      if (logEntry) {
-        await supabase
-          .from('chat_webhook_log')
-          .update({
-            webhook_response: {
-              status: webhookResponse.status,
-              response: responseData,
-              timestamp: new Date().toISOString()
-            }
-          })
-          .eq('id', logEntry.id);
-      }
+        const responseData = await webhookResponse.text();
+        
+        console.log('n8n chat webhook response:', {
+          status: webhookResponse.status,
+          response: responseData
+        });
 
-      console.log('n8n chat webhook response:', {
-        status: webhookResponse.status,
-        response: responseData
-      });
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'Chat message sent to n8n successfully',
-          logId: logEntry?.id,
-          webhookStatus: webhookResponse.status
-        }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        // Update log with webhook response
+        if (logEntry) {
+          await supabase
+            .from('chat_webhook_log')
+            .update({
+              webhook_response: {
+                status: webhookResponse.status,
+                response: responseData,
+                timestamp: new Date().toISOString()
+              },
+              status: webhookResponse.ok ? 'sent' : 'failed'
+            })
+            .eq('id', logEntry.id);
         }
-      );
 
-    } catch (webhookError) {
-      console.error('Failed to trigger n8n chat webhook:', webhookError);
-      
-      // Update log with error
-      if (logEntry) {
-        await supabase
-          .from('chat_webhook_log')
-          .update({
-            status: 'failed',
-            error_message: webhookError.message
-          })
-          .eq('id', logEntry.id);
+      } catch (webhookError) {
+        console.error('Failed to trigger n8n chat webhook:', webhookError);
+        
+        // Update log with error
+        if (logEntry) {
+          await supabase
+            .from('chat_webhook_log')
+            .update({
+              status: 'failed',
+              error_message: webhookError.message
+            })
+            .eq('id', logEntry.id);
+        }
       }
+    };
 
-      return new Response(
-        JSON.stringify({
-          error: 'Failed to send message to n8n',
-          details: webhookError.message
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Start webhook processing in background
+    sendWebhookAsync();
+
+    // Return immediate success response for better UX
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Chat message processing started',
+        logId: logEntry?.id
+      }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('Unexpected error:', error);
