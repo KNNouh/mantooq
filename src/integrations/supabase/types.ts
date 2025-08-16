@@ -7,13 +7,52 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      chat_webhook_log: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message_content: string
+          response_received_at: string | null
+          status: string | null
+          user_id: string
+          webhook_response: Json | null
+          webhook_triggered_at: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_content: string
+          response_received_at?: string | null
+          status?: string | null
+          user_id: string
+          webhook_response?: Json | null
+          webhook_triggered_at?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_content?: string
+          response_received_at?: string | null
+          status?: string | null
+          user_id?: string
+          webhook_response?: Json | null
+          webhook_triggered_at?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -96,6 +135,7 @@ export type Database = {
           filename: string
           id: string
           lang: string | null
+          manual_processing_requested: boolean | null
           processed_chunks: number | null
           processing_completed_at: string | null
           processing_started_at: string | null
@@ -105,6 +145,8 @@ export type Database = {
           storage_path: string
           total_chunks: number | null
           updated_at: string | null
+          webhook_response: Json | null
+          webhook_triggered_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -115,6 +157,7 @@ export type Database = {
           filename: string
           id?: string
           lang?: string | null
+          manual_processing_requested?: boolean | null
           processed_chunks?: number | null
           processing_completed_at?: string | null
           processing_started_at?: string | null
@@ -124,6 +167,8 @@ export type Database = {
           storage_path: string
           total_chunks?: number | null
           updated_at?: string | null
+          webhook_response?: Json | null
+          webhook_triggered_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -134,6 +179,7 @@ export type Database = {
           filename?: string
           id?: string
           lang?: string | null
+          manual_processing_requested?: boolean | null
           processed_chunks?: number | null
           processing_completed_at?: string | null
           processing_started_at?: string | null
@@ -143,6 +189,8 @@ export type Database = {
           storage_path?: string
           total_chunks?: number | null
           updated_at?: string | null
+          webhook_response?: Json | null
+          webhook_triggered_at?: string | null
         }
         Relationships: []
       }
@@ -253,7 +301,7 @@ export type Database = {
         Returns: unknown
       }
       build_hash_source: {
-        Args: { p_content: string; p_split_params: string; p_norm: string }
+        Args: { p_content: string; p_norm: string; p_split_params: string }
         Returns: string
       }
       canonicalize_text: {
@@ -267,10 +315,10 @@ export type Database = {
       get_users_with_roles: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
-          email: string
           created_at: string
+          email: string
           roles: string[]
+          user_id: string
         }[]
       }
       halfvec_avg: {
@@ -295,8 +343,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -338,53 +386,53 @@ export type Database = {
       }
       match_chunks: {
         Args: {
-          query_embedding: string
-          match_count: number
           lang_pref?: string
+          match_count: number
+          query_embedding: string
         }
         Returns: {
-          id: number
-          file_id: string
-          text: string
           article_no: string
+          file_id: string
+          id: number
           similarity: number
+          text: string
         }[]
       }
       match_documents: {
-        Args: { query_embedding: string; match_count?: number; filter?: Json }
+        Args: { filter?: Json; match_count?: number; query_embedding: string }
         Returns: {
-          id: number
-          content: string
-          metadata: Json
           article_no: string
+          content: string
+          id: number
+          metadata: Json
           similarity: number
         }[]
       }
       match_hybrid: {
         Args: {
-          query_text: string
-          query_embedding: string
-          match_count?: number
           filter?: Json
+          match_count?: number
+          query_embedding: string
+          query_text: string
         }
         Returns: {
-          id: number
-          content: string
-          metadata: Json
           article_no: string
+          content: string
+          id: number
+          metadata: Json
           score: number
         }[]
       }
       match_qapairs: {
         Args: {
-          query_embedding: string
-          match_count: number
           lang_pref?: string
+          match_count: number
+          query_embedding: string
         }
         Returns: {
+          answer: string
           id: string
           question: string
-          answer: string
           similarity: number
         }[]
       }
@@ -426,21 +474,21 @@ export type Database = {
       }
       update_processing_progress: {
         Args: {
+          p_duration_ms?: number
           p_file_id: string
-          p_stage: string
-          p_status: string
           p_message?: string
           p_metadata?: Json
-          p_duration_ms?: number
+          p_stage: string
+          p_status: string
         }
         Returns: undefined
       }
       validate_file_for_processing: {
         Args: { p_file_id: string }
         Returns: {
-          is_valid: boolean
           error_message: string
           file_info: Json
+          is_valid: boolean
         }[]
       }
       vector_avg: {

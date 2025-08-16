@@ -9,6 +9,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { AdminUpload } from '@/components/chat/AdminUpload';
 import { ProcessingMonitor } from '@/components/admin/ProcessingMonitor';
 import { KnowledgeBaseStats } from '@/components/admin/KnowledgeBaseStats';
+import KnowledgeBaseManager from '@/components/admin/KnowledgeBaseManager';
 
 const AdminPanelV2 = () => {
   const { user, isAdmin } = useAuth();
@@ -56,8 +57,9 @@ const AdminPanelV2 = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
+            <TabsTrigger value="files">File Management</TabsTrigger>
             <TabsTrigger value="processing">Processing Monitor</TabsTrigger>
             <TabsTrigger value="upload">File Upload</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
@@ -75,6 +77,10 @@ const AdminPanelV2 = () => {
                 <KnowledgeBaseStats />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="files" className="space-y-4">
+            <KnowledgeBaseManager />
           </TabsContent>
 
           <TabsContent value="processing" className="space-y-4">
