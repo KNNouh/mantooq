@@ -131,27 +131,10 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Trigger the enhanced processing function
-    console.log('Triggering enhanced processing for file:', fileRecord.id);
-
-    // Trigger the enhanced processing function in background
-    EdgeRuntime.waitUntil(
-      supabase.functions.invoke('process-file-v2', {
-        body: { fileId: fileRecord.id }
-      }).then(response => {
-        console.log('Processing function response:', response.data)
-        if (response.error) {
-          console.error('Processing function error:', response.error)
-        }
-      }).catch(error => {
-        console.error('Failed to trigger processing:', error)
-      })
-    )
-
     return new Response(JSON.stringify({
       success: true,
       file_id: fileRecord.id,
-      message: 'File uploaded and processing started'
+      message: 'File uploaded successfully. Use the Process button in File Management to start processing.'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

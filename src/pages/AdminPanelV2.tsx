@@ -7,7 +7,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { AdminUpload } from '@/components/chat/AdminUpload';
-import { ProcessingMonitor } from '@/components/admin/ProcessingMonitor';
+
 import { KnowledgeBaseStats } from '@/components/admin/KnowledgeBaseStats';
 import KnowledgeBaseManager from '@/components/admin/KnowledgeBaseManager';
 
@@ -57,10 +57,9 @@ const AdminPanelV2 = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
             <TabsTrigger value="files">File Management</TabsTrigger>
-            <TabsTrigger value="processing">Processing Monitor</TabsTrigger>
             <TabsTrigger value="upload">File Upload</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
@@ -83,19 +82,6 @@ const AdminPanelV2 = () => {
             <KnowledgeBaseManager />
           </TabsContent>
 
-          <TabsContent value="processing" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Processing Monitor</CardTitle>
-                <CardDescription>
-                  Real-time monitoring of file processing status and detailed logs
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProcessingMonitor />
-              </CardContent>
-            </Card>
-          </TabsContent>
           
           <TabsContent value="upload" className="space-y-4">
             <Card>
@@ -107,8 +93,8 @@ const AdminPanelV2 = () => {
               </CardHeader>
               <CardContent>
                 <AdminUpload onFileUploaded={() => {
-                  // Optionally switch to processing tab to monitor
-                  setActiveTab('processing');
+                  // Switch to file management tab after upload
+                  setActiveTab('files');
                 }} />
               </CardContent>
             </Card>

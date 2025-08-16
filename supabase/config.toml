@@ -3,9 +3,6 @@ project_id = "iykcvtemszqklsmwmzid"
 [functions.admin-upload]
 verify_jwt = false
 
-[functions.process-file-v2]
-verify_jwt = false
-
 [functions.trigger-file-processing]
 verify_jwt = false
 
