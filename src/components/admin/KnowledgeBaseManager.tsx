@@ -25,7 +25,8 @@ const KnowledgeBaseManager = () => {
     totalFiles: 0,
     activeFiles: 0,
     processingFiles: 0,
-    failedFiles: 0
+    failedFiles: 0,
+    pendingFiles: 0
   });
   const { toast } = useToast();
 
@@ -53,12 +54,14 @@ const KnowledgeBaseManager = () => {
       const activeFiles = data?.filter(f => f.status === 'active').length || 0;
       const processingFiles = data?.filter(f => f.status === 'processing').length || 0;
       const failedFiles = data?.filter(f => f.status === 'failed').length || 0;
+      const pendingFiles = data?.filter(f => f.status === 'pending').length || 0;
 
       setStats({
         totalFiles,
         activeFiles,
         processingFiles,
-        failedFiles
+        failedFiles,
+        pendingFiles
       });
     } catch (error) {
       console.error('Error:', error);
@@ -231,7 +234,7 @@ const KnowledgeBaseManager = () => {
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -264,6 +267,18 @@ const KnowledgeBaseManager = () => {
                 <p className="text-2xl font-bold text-blue-600">{stats.processingFiles}</p>
               </div>
               <Clock className="w-8 h-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pendingFiles}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>

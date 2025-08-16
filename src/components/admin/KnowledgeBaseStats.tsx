@@ -9,10 +9,8 @@ interface KBStats {
   activeFiles: number;
   failedFiles: number;
   processingFiles: number;
+  pendingFiles: number;
   totalChunks: number;
-  avgChunksPerFile: number;
-  avgProcessingTime: number;
-  totalStorageUsed: number;
 }
 
 export const KnowledgeBaseStats = () => {
@@ -21,10 +19,10 @@ export const KnowledgeBaseStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Get file statistics
+      // Get file statistics - only use existing columns
       const { data: fileStats, error: fileError } = await supabase
         .from('kb_files')
-        .select('status, file_size_bytes, total_chunks, processing_started_at, processing_completed_at');
+        .select('status');
 
       if (fileError) throw fileError;
 
@@ -36,36 +34,19 @@ export const KnowledgeBaseStats = () => {
       if (docError) throw docError;
 
       // Calculate statistics
-      const totalFiles = fileStats.length;
-      const activeFiles = fileStats.filter(f => f.status === 'active').length;
-      const failedFiles = fileStats.filter(f => f.status === 'failed').length;
-      const processingFiles = fileStats.filter(f => f.status === 'processing').length;
-      const totalStorageUsed = fileStats.reduce((sum, f) => sum + (f.file_size_bytes || 0), 0);
-      
-      const completedFiles = fileStats.filter(f => 
-        f.processing_started_at && f.processing_completed_at
-      );
-      
-      const avgProcessingTime = completedFiles.length > 0 
-        ? completedFiles.reduce((sum, f) => {
-            const duration = new Date(f.processing_completed_at!).getTime() - 
-                           new Date(f.processing_started_at!).getTime();
-            return sum + duration;
-          }, 0) / completedFiles.length
-        : 0;
-
-      const totalChunks = fileStats.reduce((sum, f) => sum + (f.total_chunks || 0), 0);
-      const avgChunksPerFile = totalFiles > 0 ? totalChunks / totalFiles : 0;
+      const totalFiles = fileStats?.length || 0;
+      const activeFiles = fileStats?.filter(f => f.status === 'active').length || 0;
+      const failedFiles = fileStats?.filter(f => f.status === 'failed').length || 0;
+      const processingFiles = fileStats?.filter(f => f.status === 'processing').length || 0;
+      const pendingFiles = fileStats?.filter(f => f.status === 'pending').length || 0;
 
       setStats({
         totalFiles,
         activeFiles,
         failedFiles,
         processingFiles,
-        totalChunks: docCount || 0,
-        avgChunksPerFile,
-        avgProcessingTime,
-        totalStorageUsed
+        pendingFiles,
+        totalChunks: docCount || 0
       });
 
     } catch (error) {
@@ -83,27 +64,10 @@ export const KnowledgeBaseStats = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDuration = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    if (minutes > 0) {
-      return `${minutes}m ${seconds % 60}s`;
-    }
-    return `${seconds}s`;
-  };
-
   if (loading || !stats) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Loading...</CardTitle>
@@ -120,7 +84,7 @@ export const KnowledgeBaseStats = () => {
   return (
     <div className="space-y-6">
       {/* Main Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Files</CardTitle>
@@ -142,6 +106,11 @@ export const KnowledgeBaseStats = () => {
                   {stats.processingFiles} processing
                 </Badge>
               )}
+              {stats.pendingFiles > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {stats.pendingFiles} pending
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -154,35 +123,25 @@ export const KnowledgeBaseStats = () => {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalChunks.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              ~{Math.round(stats.avgChunksPerFile)} avg per file
+              Processed documents
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
+            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatBytes(stats.totalStorageUsed)}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalFiles > 0 && `~${formatBytes(stats.totalStorageUsed / stats.totalFiles)} avg per file`}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Processing Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
             <div className="text-2xl font-bold">
-              {stats.avgProcessingTime > 0 ? formatDuration(stats.avgProcessingTime) : 'N/A'}
+              {stats.totalFiles > 0 
+                ? Math.round((stats.activeFiles / stats.totalFiles) * 100)
+                : 0
+              }%
             </div>
             <p className="text-xs text-muted-foreground">
-              Per file completion
+              Files processed successfully
             </p>
           </CardContent>
         </Card>
@@ -220,7 +179,7 @@ export const KnowledgeBaseStats = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-green-600">{stats.activeFiles}</div>
                 <div className="text-xs text-muted-foreground">Active</div>
@@ -228,6 +187,10 @@ export const KnowledgeBaseStats = () => {
               <div>
                 <div className="text-2xl font-bold text-blue-600">{stats.processingFiles}</div>
                 <div className="text-xs text-muted-foreground">Processing</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{stats.pendingFiles}</div>
+                <div className="text-xs text-muted-foreground">Pending</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-red-600">{stats.failedFiles}</div>
