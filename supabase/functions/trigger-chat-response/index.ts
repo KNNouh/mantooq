@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
       conversationId: conversationId,
       message: message,
       timestamp: new Date().toISOString(),
-      supabaseUrl: supabaseUrl
+      supabaseUrl: supabaseUrl,
+      responseCallbackUrl: `${supabaseUrl}/functions/v1/handle-chat-response`
     };
 
     // Log the webhook trigger
