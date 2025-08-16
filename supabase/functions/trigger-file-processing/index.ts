@@ -109,13 +109,21 @@ Deno.serve(async (req) => {
     // Send webhook to n8n
     const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d';
     
+    // Build query parameters for GET request
+    const queryParams = new URLSearchParams({
+      fileId: webhookPayload.fileId,
+      filename: webhookPayload.filename,
+      storagePath: webhookPayload.storagePath,
+      fileSize: webhookPayload.fileSize.toString(),
+      requestedBy: webhookPayload.requestedBy,
+      timestamp: webhookPayload.timestamp,
+      supabaseUrl: webhookPayload.supabaseUrl,
+      bucketName: webhookPayload.bucketName
+    });
+    
     try {
-      const webhookResponse = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookPayload),
+      const webhookResponse = await fetch(`${webhookUrl}?${queryParams.toString()}`, {
+        method: 'GET',
       });
 
       const responseData = await webhookResponse.text();
