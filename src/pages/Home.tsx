@@ -2,41 +2,45 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Shield, Globe, Users, Star, Zap } from 'lucide-react';
+import { MessageCircle, Scale, BookOpen, Users, Clock, Gavel } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSwitcher from '@/components/ui/language-switcher';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className={`min-h-screen bg-gradient-subtle ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className={`flex items-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
             <div className="w-10 h-10 rounded-lg flex items-center justify-center">
               <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-mantooq bg-clip-text text-transparent">
-                منطوق
+                {t('site.name')}
               </h1>
-              <p className="text-xs text-muted-foreground">Mantooq AI Assistant</p>
+              <p className="text-xs text-muted-foreground">{t('site.tagline')}</p>
             </div>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <LanguageSwitcher />
             <Button 
               variant="outline" 
               onClick={() => navigate('/auth')}
               className="border-primary/20"
             >
-              تسجيل الدخول
+              {t('auth.login')}
             </Button>
             <Button 
               onClick={() => navigate('/auth')}
               className="bg-gradient-mantooq hover:opacity-90 transition-opacity"
             >
-              ابدأ الآن
+              {t('auth.start')}
             </Button>
           </div>
         </div>
@@ -53,12 +57,16 @@ const Home = () => {
           
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              مرحباً بك في منطوق
+              {t('hero.title')}
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            مساعدك الذكي المدعوم بأحدث تقنيات الذكاء الاصطناعي، مصمم لخدمة المتحدثين بالعربية بفهم ثقافي وتميز عالي.
+          <h2 className="text-2xl md:text-3xl font-semibold text-primary mb-4">
+            {t('hero.subtitle')}
+          </h2>
+          
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
+            {t('hero.description')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -67,16 +75,16 @@ const Home = () => {
               onClick={() => navigate('/auth')}
               className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-lg px-8 py-3"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              ابدأ المحادثة الآن
+              <MessageCircle className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+              {t('hero.start_chat')}
             </Button>
             <Button 
               variant="outline" 
               size="lg"
               className="border-primary/20 text-lg px-8 py-3"
             >
-              <Globe className="w-5 h-5 mr-2" />
-              تعرف على المزيد
+              <BookOpen className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+              {t('hero.learn_more')}
             </Button>
           </div>
 
@@ -98,11 +106,11 @@ const Home = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              لماذا تختار منطوق؟
+              {t('features.title')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            اختبر المزج المثالي بين أحدث تقنيات الذكاء الاصطناعي والفهم الثقافي العميق
+            {t('features.subtitle')}
           </p>
         </div>
 
@@ -110,13 +118,13 @@ const Home = () => {
           <Card className="border-primary/10 hover:border-primary/20 transition-colors group">
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <Shield className="w-6 h-6 text-primary" />
+                <Scale className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-xl">الأمان والخصوصية</CardTitle>
+              <CardTitle className="text-xl">{t('features.legal_expertise.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                محادثاتك محمية بأمان على مستوى المؤسسات، مما يضمن الخصوصية الكاملة وحماية البيانات.
+                {t('features.legal_expertise.desc')}
               </p>
             </CardContent>
           </Card>
@@ -124,13 +132,13 @@ const Home = () => {
           <Card className="border-primary/10 hover:border-primary/20 transition-colors group">
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <Globe className="w-6 h-6 text-primary" />
+                <BookOpen className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-xl">الثقافة العربية</CardTitle>
+              <CardTitle className="text-xl">{t('features.qatar_law.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                فهم عميق للثقافة العربية والتقاليد والقيم، مما يوفر استجابات مناسبة ثقافياً.
+                {t('features.qatar_law.desc')}
               </p>
             </CardContent>
           </Card>
@@ -138,13 +146,13 @@ const Home = () => {
           <Card className="border-primary/10 hover:border-primary/20 transition-colors group">
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <Zap className="w-6 h-6 text-primary" />
+                <Clock className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-xl">استجابة فورية</CardTitle>
+              <CardTitle className="text-xl">{t('features.instant_response.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                احصل على استجابات ذكية فورية مدعومة بأحدث تقنيات الذكاء الاصطناعي للتواصل الفعال.
+                {t('features.instant_response.desc')}
               </p>
             </CardContent>
           </Card>
@@ -157,19 +165,19 @@ const Home = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-muted-foreground">متاح دائماً</p>
+              <p className="text-muted-foreground">{t('stats.available')}</p>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">99.9%</div>
-              <p className="text-muted-foreground">موثوقية عالية</p>
+              <p className="text-muted-foreground">{t('stats.accuracy')}</p>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">2</div>
-              <p className="text-muted-foreground">لغتان</p>
+              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">1</div>
+              <p className="text-muted-foreground">{t('stats.laws')}</p>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">∞</div>
-              <p className="text-muted-foreground">إمكانيات لا محدودة</p>
+              <p className="text-muted-foreground">{t('stats.unlimited')}</p>
             </div>
           </div>
         </div>
@@ -180,19 +188,19 @@ const Home = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              ابدأ رحلتك مع الذكاء الاصطناعي
+              {t('cta.title')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            انضم إلى آلاف المستخدمين الذين يثقون في منطوق لتلبية احتياجاتهم اليومية
+            {t('cta.subtitle')}
           </p>
           <Button 
             size="lg" 
             onClick={() => navigate('/auth')}
             className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-lg px-8 py-4"
           >
-            <Users className="w-5 h-5 mr-2" />
-            انضم إلينا الآن
+            <Gavel className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+            {t('cta.join')}
           </Button>
         </div>
       </section>
@@ -200,14 +208,14 @@ const Home = () => {
       {/* Footer */}
       <footer className="bg-card border-t py-8">
         <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className={`flex items-center justify-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'} mb-4`}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
               <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-6 h-6 object-contain" />
             </div>
-            <span className="font-semibold text-primary">منطوق</span>
+            <span className="font-semibold text-primary">{t('site.name')}</span>
           </div>
           <p className="text-muted-foreground text-sm">
-            © 2024 منطوق. صُنع بـ ❤️ للمتحدثين بالعربية.
+            {t('footer.copyright')}
           </p>
         </div>
       </footer>
