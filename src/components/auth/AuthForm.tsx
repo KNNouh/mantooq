@@ -143,7 +143,7 @@ export const AuthForm: React.FC = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-qatar hover:opacity-90 transition-opacity" 
+                className="w-full bg-primary hover:bg-primary/90 transition-colors" 
                 disabled={loading}
               >
                 {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
@@ -182,7 +182,7 @@ export const AuthForm: React.FC = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-qatar hover:opacity-90 transition-opacity" 
+                className="w-full bg-primary hover:bg-primary/90 transition-colors" 
                 disabled={loading}
               >
                 {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد'}
