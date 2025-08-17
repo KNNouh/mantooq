@@ -16,8 +16,17 @@ const Home = () => {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className={`flex items-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-8 h-8 object-contain" />
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
+                alt="منطوق - Mantooq" 
+                className="w-10 h-10 object-contain dark:hidden" 
+              />
+              <img 
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
+                alt="منطوق - Mantooq" 
+                className="w-10 h-10 object-contain hidden dark:block" 
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-mantooq bg-clip-text text-transparent">
@@ -50,8 +59,17 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6">
-              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-16 h-16 object-contain" />
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 bg-gradient-to-br from-primary/10 to-mantooq-gold/10 backdrop-blur-sm">
+              <img 
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
+                alt="منطوق - Mantooq" 
+                className="w-20 h-20 object-contain dark:hidden drop-shadow-lg" 
+              />
+              <img 
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
+                alt="منطوق - Mantooq" 
+                className="w-20 h-20 object-contain hidden dark:block drop-shadow-lg" 
+              />
             </div>
           </div>
           
@@ -209,8 +227,17 @@ const Home = () => {
       <footer className="bg-card border-t py-8">
         <div className="container mx-auto px-4 text-center">
           <div className={`flex items-center justify-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'} mb-4`}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-6 h-6 object-contain" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
+                alt="منطوق - Mantooq" 
+                className="w-8 h-8 object-contain dark:hidden" 
+              />
+              <img 
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
+                alt="منطوق - Mantooq" 
+                className="w-8 h-8 object-contain hidden dark:block" 
+              />
             </div>
             <span className="font-semibold text-primary">{t('site.name')}</span>
           </div>
