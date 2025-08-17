@@ -249,9 +249,9 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
     }
   }, [userId, loadConversations]);
 
-  // Real-time subscription for all open conversations
+  // Real-time subscription for all open conversations - optimized to prevent constant recreations
   useEffect(() => {
-    if (!userId || tabs.length === 0) return;
+    if (!userId) return;
 
     console.log('Setting up real-time subscription for multiple conversations');
     
@@ -299,7 +299,7 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
       console.log('Cleaning up multi-conversation real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [userId, tabs, activeTabId]);
+  }, [userId]); // Only depend on userId to prevent constant re-subscriptions
 
   const memoizedReturn = useMemo(() => ({
     tabs,

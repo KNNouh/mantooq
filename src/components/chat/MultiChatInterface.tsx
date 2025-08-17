@@ -63,7 +63,7 @@ const MultiChatInterface = memo(() => {
     }
   }, [user, loadConversations]);
 
-  // Optimized message sending with better error handling
+  // Optimized message sending with better error handling and conversation continuity
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || isLoading || !user) return;
@@ -75,49 +75,50 @@ const MultiChatInterface = memo(() => {
     try {
       let conversationId = activeTab?.conversation.id;
 
-      // Create new conversation if none exists or if it's a new tab
+      // Create new conversation ONLY if no tab is active or tab has no conversation
       if (!conversationId) {
         conversationId = await createNewConversation(message);
         
-        // If we have an active new tab, update it with the new conversation
-        if (activeTab && !activeTab.conversation.id) {
-          const newConversation = conversations.find(c => c.id === conversationId);
-          if (newConversation) {
-            openConversationInTab(newConversation);
+        // Reload conversations to get the new one
+        await loadConversations();
+        
+        // Find and open the new conversation in a tab
+        setTimeout(async () => {
+          const { data: newConv } = await supabase
+            .from('conversations')
+            .select('id, title, created_at')
+            .eq('id', conversationId)
+            .single();
+          
+          if (newConv) {
+            openConversationInTab(newConv);
           }
-        } else {
-          // Open the new conversation in a tab
-          const newConversation = conversations.find(c => c.id === conversationId);
-          if (newConversation) {
-            openConversationInTab(newConversation);
-          }
-        }
+        }, 100);
       }
 
       // Add user message
       await addMessage(conversationId, 'user', message);
 
       // Trigger webhook to get AI response
-      supabase.functions.invoke('trigger-chat-response', {
+      const { error } = await supabase.functions.invoke('trigger-chat-response', {
         body: {
           message,
           conversationId
         }
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Error triggering chat response:', error);
-          addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
-        }
-      }).catch(error => {
-        console.error('Webhook error:', error);
       });
+
+      if (error) {
+        console.error('Error triggering chat response:', error);
+        await addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
+      await addMessage(activeTab?.conversation.id || '', 'assistant', 'An error occurred while processing your message.');
     } finally {
       setIsLoading(false);
     }
-  }, [inputMessage, isLoading, user, activeTab, createNewConversation, addMessage, conversations, openConversationInTab]);
+  }, [inputMessage, isLoading, user, activeTab, createNewConversation, addMessage, loadConversations, openConversationInTab]);
 
   if (!user) {
     return (
@@ -228,16 +229,14 @@ const MultiChatInterface = memo(() => {
             </div>
           </div>
           
-          {tabs.length > 0 && (
-            <ConversationTabs
-              tabs={tabs}
-              activeTabId={activeTabId}
-              maxTabs={maxTabs}
-              onTabSelect={setActiveTab}
-              onTabClose={closeTab}
-              onNewTab={openNewConversationTab}
-            />
-          )}
+          <ConversationTabs
+            tabs={tabs}
+            activeTabId={activeTabId}
+            maxTabs={maxTabs}
+            onTabSelect={setActiveTab}
+            onTabClose={closeTab}
+            onNewTab={openNewConversationTab}
+          />
         </div>
 
         {showUpload && userRoles.isAdmin && (
@@ -305,11 +304,18 @@ const MultiChatInterface = memo(() => {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No conversation selected</h3>
-              <p className="text-sm">
-                Open a conversation from the sidebar or start a new chat
+            <div className="text-center text-muted-foreground max-w-md">
+              <MessageCircle className="h-20 w-20 mx-auto mb-6 opacity-30" />
+              <h3 className="text-xl font-medium mb-3">Welcome to Multi-Chat</h3>
+              <p className="text-sm mb-6 leading-relaxed">
+                You can open up to {maxTabs} conversations simultaneously. 
+                Click "New Chat" or select a conversation from the sidebar to get started.
+              </p>
+              <Button onClick={openNewConversationTab} variant="outline" className="mb-2">
+                Start New Conversation
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Tabs: {tabs.length}/{maxTabs}
               </p>
             </div>
           </div>
