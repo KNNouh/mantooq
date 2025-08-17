@@ -62,16 +62,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Mantooq brand colors
-				'mantooq-blue': 'hsl(216, 81%, 45%)',
-				'mantooq-white': 'hsl(0, 0%, 98%)',
+				// Mantooq Authentic Arabic Brand Colors
+				'mantooq-burgundy': 'hsl(var(--mantooq-burgundy))',
 				'mantooq-gold': 'hsl(var(--mantooq-gold))',
-				'mantooq-light-gray': 'hsl(var(--mantooq-light-gray))',
-				'mantooq-dark-gray': 'hsl(var(--mantooq-dark-gray))',
-				'mantooq-black': 'hsl(var(--mantooq-black))'
+				'mantooq-sand': 'hsl(var(--mantooq-sand))',
+				'mantooq-gray': 'hsl(var(--mantooq-gray))',
+				'mantooq-sapphire': 'hsl(var(--mantooq-sapphire))',
+				'mantooq-white': 'hsl(var(--mantooq-white))'
 			},
 			backgroundImage: {
 				'gradient-mantooq': 'var(--gradient-mantooq)',
+				'gradient-burgundy': 'var(--gradient-burgundy)',
+				'gradient-gold': 'var(--gradient-gold)',
 				'gradient-subtle': 'var(--gradient-subtle)'
 			},
 			borderRadius: {

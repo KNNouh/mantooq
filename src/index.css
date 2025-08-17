@@ -8,57 +8,64 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Mantooq Brand Colors */
-    --background: 0 0% 98%;
-    --foreground: 216 37% 16%;
+    /* Mantooq Authentic Arabic Brand Colors */
+    --background: 33 45% 95%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 216 37% 16%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 216 37% 16%;
+    --popover-foreground: 0 0% 15%;
 
-    /* Mantooq Blue as Primary */
-    --primary: 216 81% 45%;
+    /* Sapphire Blue as Primary (أزرق ياقوتي) */
+    --primary: 216 100% 36%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 216 16% 96%;
-    --secondary-foreground: 216 37% 16%;
+    /* Light Sand as Secondary (رملي فاتح) */
+    --secondary: 33 45% 82%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 216 8% 95%;
-    --muted-foreground: 216 12% 50%;
+    --muted: 33 45% 88%;
+    --muted-foreground: 0 0% 35%;
 
-    --accent: 216 20% 92%;
-    --accent-foreground: 216 37% 16%;
+    /* Gold as Accent (ذهبي) */
+    --accent: 40 54% 46%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* Burgundy for Destructive (عنابي) */
+    --destructive: 342 70% 31%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 216 12% 88%;
-    --input: 216 12% 88%;
-    --ring: 216 81% 45%;
+    --border: 33 25% 85%;
+    --input: 33 25% 85%;
+    --ring: 216 100% 36%;
 
     --radius: 0.75rem;
 
-    /* Mantooq brand gradients */
-    --gradient-mantooq: linear-gradient(135deg, hsl(216, 81%, 45%), hsl(216, 71%, 55%));
-    --gradient-subtle: linear-gradient(180deg, hsl(216, 16%, 96%), hsl(216, 12%, 94%));
+    /* Mantooq Authentic Gradients */
+    --gradient-mantooq: linear-gradient(135deg, hsl(216, 100%, 36%), hsl(40, 54%, 46%));
+    --gradient-burgundy: linear-gradient(135deg, hsl(342, 70%, 31%), hsl(342, 70%, 45%));
+    --gradient-gold: linear-gradient(135deg, hsl(40, 54%, 46%), hsl(40, 60%, 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(33, 45%, 95%), hsl(33, 35%, 92%));
 
-    /* Sidebar with Mantooq theme */
-    --sidebar-background: 216 10% 97%;
-    --sidebar-foreground: 216 37% 25%;
-    --sidebar-primary: 216 81% 45%;
+    /* Sidebar with Arabic theme */
+    --sidebar-background: 33 45% 96%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 216 100% 36%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 216 18% 93%;
-    --sidebar-accent-foreground: 216 37% 16%;
-    --sidebar-border: 216 12% 88%;
-    --sidebar-ring: 216 81% 45%;
+    --sidebar-accent: 33 45% 85%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 33 25% 85%;
+    --sidebar-ring: 216 100% 36%;
 
-    /* Brand accent colors */
-    --mantooq-gold: 40 85% 65%;
-    --mantooq-light-gray: 0 0% 85%;
-    --mantooq-dark-gray: 216 20% 20%;
-    --mantooq-black: 216 25% 8%;
+    /* Arabic Brand Colors */
+    --mantooq-burgundy: 342 70% 31%;
+    --mantooq-gold: 40 54% 46%;
+    --mantooq-sand: 33 45% 82%;
+    --mantooq-gray: 0 0% 35%;
+    --mantooq-sapphire: 216 100% 36%;
+    --mantooq-white: 0 0% 100%;
   }
 
   .dark {
