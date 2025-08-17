@@ -1,5 +1,5 @@
 import { useAuth } from '@/components/auth/AuthProvider';
-import OptimizedChatInterface from '@/components/chat/OptimizedChatInterface';
+import MultiChatInterface from '@/components/chat/MultiChatInterface';
 import Home from './Home';
 
 const Index = () => {
@@ -23,7 +23,7 @@ const Index = () => {
     return <Home />;
   }
 
-  return <OptimizedChatInterface />;
+  return <MultiChatInterface />;
 };
 
 export default Index;
