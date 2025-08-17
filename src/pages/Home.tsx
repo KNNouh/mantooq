@@ -13,14 +13,14 @@ const Home = () => {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-qatar rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-qatar bg-clip-text text-transparent">
-                Qatar AI Assistant
+              <h1 className="text-xl font-bold bg-gradient-mantooq bg-clip-text text-transparent">
+                منطوق
               </h1>
-              <p className="text-xs text-muted-foreground">مساعد قطر الذكي</p>
+              <p className="text-xs text-muted-foreground">Mantooq AI Assistant</p>
             </div>
           </div>
           
@@ -34,7 +34,7 @@ const Home = () => {
             </Button>
             <Button 
               onClick={() => navigate('/auth')}
-              className="bg-gradient-qatar hover:opacity-90 transition-opacity"
+              className="bg-gradient-mantooq hover:opacity-90 transition-opacity"
             >
               ابدأ الآن
             </Button>
@@ -46,26 +46,26 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-qatar rounded-full mb-6">
-              <Star className="w-10 h-10 text-primary-foreground" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6">
+              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-16 h-16 object-contain" />
             </div>
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-qatar bg-clip-text text-transparent">
-              مرحباً بك في مساعد قطر الذكي
+            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
+              مرحباً بك في منطوق
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Your intelligent assistant powered by advanced AI technology, designed to serve the people of Qatar with cultural understanding and excellence.
+            مساعدك الذكي المدعوم بأحدث تقنيات الذكاء الاصطناعي، مصمم لخدمة المتحدثين بالعربية بفهم ثقافي وتميز عالي.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button 
               size="lg" 
               onClick={() => navigate('/auth')}
-              className="bg-gradient-qatar hover:opacity-90 transition-opacity text-lg px-8 py-3"
+              className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-lg px-8 py-3"
             >
               <MessageCircle className="w-5 h-5 mr-2" />
               ابدأ المحادثة الآن
@@ -80,15 +80,15 @@ const Home = () => {
             </Button>
           </div>
 
-          {/* Cultural Pattern */}
-          <div className="flex justify-center items-center space-x-4 text-cultural-gold">
-            <div className="w-2 h-2 bg-cultural-gold rounded-full"></div>
-            <div className="w-3 h-3 bg-cultural-gold rounded-full"></div>
-            <div className="w-4 h-4 bg-cultural-gold rounded-full"></div>
+          {/* Brand Pattern */}
+          <div className="flex justify-center items-center space-x-4 text-mantooq-gold">
+            <div className="w-2 h-2 bg-mantooq-gold rounded-full"></div>
+            <div className="w-3 h-3 bg-mantooq-gold rounded-full"></div>
+            <div className="w-4 h-4 bg-mantooq-gold rounded-full"></div>
             <div className="text-2xl">✦</div>
-            <div className="w-4 h-4 bg-cultural-gold rounded-full"></div>
-            <div className="w-3 h-3 bg-cultural-gold rounded-full"></div>
-            <div className="w-2 h-2 bg-cultural-gold rounded-full"></div>
+            <div className="w-4 h-4 bg-mantooq-gold rounded-full"></div>
+            <div className="w-3 h-3 bg-mantooq-gold rounded-full"></div>
+            <div className="w-2 h-2 bg-mantooq-gold rounded-full"></div>
           </div>
         </div>
       </section>
@@ -97,12 +97,12 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="bg-gradient-qatar bg-clip-text text-transparent">
-              لماذا تختار مساعد قطر الذكي؟
+            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
+              لماذا تختار منطوق؟
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience the perfect blend of cutting-edge AI technology and deep cultural understanding
+            اختبر المزج المثالي بين أحدث تقنيات الذكاء الاصطناعي والفهم الثقافي العميق
           </p>
         </div>
 
@@ -116,7 +116,7 @@ const Home = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Your conversations are protected with enterprise-grade security, ensuring complete privacy and data protection.
+                محادثاتك محمية بأمان على مستوى المؤسسات، مما يضمن الخصوصية الكاملة وحماية البيانات.
               </p>
             </CardContent>
           </Card>
@@ -126,11 +126,11 @@ const Home = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
                 <Globe className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-xl">الثقافة القطرية</CardTitle>
+              <CardTitle className="text-xl">الثقافة العربية</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Deeply understands Qatari culture, traditions, and values, providing culturally appropriate responses.
+                فهم عميق للثقافة العربية والتقاليد والقيم، مما يوفر استجابات مناسبة ثقافياً.
               </p>
             </CardContent>
           </Card>
@@ -144,7 +144,7 @@ const Home = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                Get instant, intelligent responses powered by the latest AI technology for efficient communication.
+                احصل على استجابات ذكية فورية مدعومة بأحدث تقنيات الذكاء الاصطناعي للتواصل الفعال.
               </p>
             </CardContent>
           </Card>
@@ -179,17 +179,17 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            <span className="bg-gradient-qatar bg-clip-text text-transparent">
+            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
               ابدأ رحلتك مع الذكاء الاصطناعي
             </span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of users who trust Qatar AI Assistant for their daily needs
+            انضم إلى آلاف المستخدمين الذين يثقون في منطوق لتلبية احتياجاتهم اليومية
           </p>
           <Button 
             size="lg" 
             onClick={() => navigate('/auth')}
-            className="bg-gradient-qatar hover:opacity-90 transition-opacity text-lg px-8 py-4"
+            className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-lg px-8 py-4"
           >
             <Users className="w-5 h-5 mr-2" />
             انضم إلينا الآن
@@ -201,13 +201,13 @@ const Home = () => {
       <footer className="bg-card border-t py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-qatar rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <img src="/lovable-uploads/e0586dfc-9cb0-4322-8061-8cdfd2b98a6e.png" alt="Mantooq" className="w-6 h-6 object-contain" />
             </div>
-            <span className="font-semibold text-primary">Qatar AI Assistant</span>
+            <span className="font-semibold text-primary">منطوق</span>
           </div>
           <p className="text-muted-foreground text-sm">
-            © 2024 Qatar AI Assistant. Made with ❤️ for the people of Qatar.
+            © 2024 منطوق. صُنع بـ ❤️ للمتحدثين بالعربية.
           </p>
         </div>
       </footer>

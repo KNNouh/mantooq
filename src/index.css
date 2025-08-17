@@ -8,95 +8,97 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Qatar Flag Colors - Maroon and White */
+    /* Mantooq Brand Colors */
     --background: 0 0% 98%;
-    --foreground: 0 45% 15%;
+    --foreground: 216 37% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 45% 15%;
+    --card-foreground: 216 37% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 45% 15%;
+    --popover-foreground: 216 37% 16%;
 
-    /* Qatar Maroon as Primary */
-    --primary: 0 65% 35%;
+    /* Mantooq Blue as Primary */
+    --primary: 216 81% 45%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 15% 96%;
-    --secondary-foreground: 0 45% 15%;
+    --secondary: 216 16% 96%;
+    --secondary-foreground: 216 37% 16%;
 
-    --muted: 0 10% 95%;
-    --muted-foreground: 0 20% 50%;
+    --muted: 216 8% 95%;
+    --muted-foreground: 216 12% 50%;
 
-    --accent: 0 25% 92%;
-    --accent-foreground: 0 45% 15%;
+    --accent: 216 20% 92%;
+    --accent-foreground: 216 37% 16%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 15% 88%;
-    --input: 0 15% 88%;
-    --ring: 0 65% 35%;
+    --border: 216 12% 88%;
+    --input: 216 12% 88%;
+    --ring: 216 81% 45%;
 
     --radius: 0.75rem;
 
-    /* Qatar-themed gradients */
-    --gradient-qatar: linear-gradient(135deg, hsl(0, 65%, 35%), hsl(0, 55%, 45%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0, 15%, 96%), hsl(0, 10%, 94%));
+    /* Mantooq brand gradients */
+    --gradient-mantooq: linear-gradient(135deg, hsl(216, 81%, 45%), hsl(216, 71%, 55%));
+    --gradient-subtle: linear-gradient(180deg, hsl(216, 16%, 96%), hsl(216, 12%, 94%));
 
-    /* Sidebar with Qatar theme */
-    --sidebar-background: 0 5% 97%;
-    --sidebar-foreground: 0 35% 25%;
-    --sidebar-primary: 0 65% 35%;
+    /* Sidebar with Mantooq theme */
+    --sidebar-background: 216 10% 97%;
+    --sidebar-foreground: 216 37% 25%;
+    --sidebar-primary: 216 81% 45%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 20% 93%;
-    --sidebar-accent-foreground: 0 45% 15%;
-    --sidebar-border: 0 15% 88%;
-    --sidebar-ring: 0 65% 35%;
+    --sidebar-accent: 216 18% 93%;
+    --sidebar-accent-foreground: 216 37% 16%;
+    --sidebar-border: 216 12% 88%;
+    --sidebar-ring: 216 81% 45%;
 
-    /* Cultural elements */
-    --cultural-gold: 45 95% 55%;
-    --cultural-desert: 35 45% 75%;
+    /* Brand accent colors */
+    --mantooq-gold: 40 85% 65%;
+    --mantooq-light-gray: 0 0% 85%;
+    --mantooq-dark-gray: 216 20% 20%;
+    --mantooq-black: 216 25% 8%;
   }
 
   .dark {
-    /* Dark theme with Qatar maroon accents */
-    --background: 0 15% 8%;
+    /* Dark theme with Mantooq blue accents */
+    --background: 216 25% 8%;
     --foreground: 0 0% 95%;
 
-    --card: 0 15% 10%;
+    --card: 216 25% 10%;
     --card-foreground: 0 0% 95%;
 
-    --popover: 0 15% 10%;
+    --popover: 216 25% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 0 65% 45%;
+    --primary: 216 81% 55%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 20% 15%;
+    --secondary: 216 20% 15%;
     --secondary-foreground: 0 0% 95%;
 
-    --muted: 0 20% 15%;
-    --muted-foreground: 0 15% 65%;
+    --muted: 216 20% 15%;
+    --muted-foreground: 216 15% 65%;
 
-    --accent: 0 25% 18%;
+    --accent: 216 25% 18%;
     --accent-foreground: 0 0% 95%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 20% 18%;
-    --input: 0 20% 18%;
-    --ring: 0 65% 45%;
+    --border: 216 20% 18%;
+    --input: 216 20% 18%;
+    --ring: 216 81% 55%;
 
-    --sidebar-background: 0 20% 12%;
+    --sidebar-background: 216 25% 12%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 65% 45%;
+    --sidebar-primary: 216 81% 55%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 25% 18%;
+    --sidebar-accent: 216 25% 18%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 20% 18%;
-    --sidebar-ring: 0 65% 45%;
+    --sidebar-border: 216 20% 18%;
+    --sidebar-ring: 216 81% 55%;
   }
 }
 

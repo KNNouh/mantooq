@@ -62,14 +62,16 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Qatar cultural colors
-				'qatar-maroon': 'hsl(0, 65%, 35%)',
-				'qatar-white': 'hsl(0, 0%, 98%)',
-				'cultural-gold': 'hsl(var(--cultural-gold))',
-				'cultural-desert': 'hsl(var(--cultural-desert))'
+				// Mantooq brand colors
+				'mantooq-blue': 'hsl(216, 81%, 45%)',
+				'mantooq-white': 'hsl(0, 0%, 98%)',
+				'mantooq-gold': 'hsl(var(--mantooq-gold))',
+				'mantooq-light-gray': 'hsl(var(--mantooq-light-gray))',
+				'mantooq-dark-gray': 'hsl(var(--mantooq-dark-gray))',
+				'mantooq-black': 'hsl(var(--mantooq-black))'
 			},
 			backgroundImage: {
-				'gradient-qatar': 'var(--gradient-qatar)',
+				'gradient-mantooq': 'var(--gradient-mantooq)',
 				'gradient-subtle': 'var(--gradient-subtle)'
 			},
 			borderRadius: {

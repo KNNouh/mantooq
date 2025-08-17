@@ -168,7 +168,7 @@ const OptimizedChatInterface = memo(() => {
 
           <div className="mt-4 pt-4 border-t">
             <div className="flex gap-2">
-              {userRoles.isAdmin && <Button onClick={() => window.open('/admin', '_blank')} variant="outline" size="sm" className="flex-1">
+              {userRoles.isAdmin && <Button onClick={() => window.location.href = '/admin'} variant="outline" size="sm" className="flex-1">
                   <Settings className="h-4 w-4 mr-1" />
                   Admin
                 </Button>}
