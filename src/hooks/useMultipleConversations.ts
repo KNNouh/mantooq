@@ -40,7 +40,10 @@ interface UseMultipleConversationsReturn {
 
 const MAX_TABS = 3;
 
-export function useMultipleConversations(userId: string | null): UseMultipleConversationsReturn {
+export function useMultipleConversations(
+  userId: string | null, 
+  onAssistantMessage?: (conversationId: string) => void
+): UseMultipleConversationsReturn {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [tabs, setTabs] = useState<ConversationTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
@@ -307,6 +310,12 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
               
               console.log(`✅ Added message to tab ${tab.id}:`, newMessage.content.slice(0, 50));
               
+              // If this is an assistant message, notify parent to clear loading state
+              if (newMessage.role === 'assistant' && onAssistantMessage) {
+                console.log('🛑 Assistant message received, clearing loading state for conversation:', newMessage.conversation_id);
+                onAssistantMessage(newMessage.conversation_id);
+              }
+              
               return {
                 ...tab,
                 messages: updatedMessages,
@@ -335,7 +344,7 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
       console.log(`🧹 Cleaning up real-time subscription: ${channelName}`);
       supabase.removeChannel(channel);
     };
-  }, [userId, activeTabId]); // Include activeTabId for proper unread count handling
+  }, [userId, onAssistantMessage, activeTabId]); // Include onAssistantMessage for proper deps
 
   const memoizedReturn = useMemo(() => ({
     tabs,

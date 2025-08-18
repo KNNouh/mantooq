@@ -31,6 +31,15 @@ const MultiChatInterface = memo(() => {
 
   const { toast } = useToast();
   const { language, t } = useLanguage();
+  
+  // Callback to handle assistant messages and clear loading states
+  const handleAssistantMessage = useCallback((conversationId: string) => {
+    console.log('🛑 Clearing loading state for conversation:', conversationId);
+    setConversationLoadingStates(prev => ({
+      ...prev,
+      [conversationId]: false
+    }));
+  }, []);
 
   const {
     tabs,
@@ -45,7 +54,7 @@ const MultiChatInterface = memo(() => {
     addMessage,
     createNewConversation,
     openNewConversationTab
-  } = useMultipleConversations(user?.id || null);
+  } = useMultipleConversations(user?.id || null, handleAssistantMessage);
 
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -70,36 +79,6 @@ const MultiChatInterface = memo(() => {
       loadConversations();
     }
   }, [user, loadConversations]);
-
-  // Real-time subscription for assistant messages to stop loading
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('messages-channel')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `role=eq.assistant`
-        },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          // Stop loading for this conversation when assistant responds
-          setConversationLoadingStates(prev => ({
-            ...prev,
-            [newMessage.conversation_id]: false
-          }));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
 
   // Optimized message sending with better error handling and conversation continuity
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
