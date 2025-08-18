@@ -78,14 +78,21 @@ Deno.serve(async (req) => {
 
     // Delete related documents
     console.log('Deleting related documents...');
-    const { error: documentsError } = await supabase
+    const { data: deletedDocs, error: documentsError } = await supabase
       .from('documents')
       .delete()
-      .eq('file_id', fileId);
+      .eq('file_id', fileId)
+      .select('id');
 
     if (documentsError) {
       console.error('Error deleting documents:', documentsError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to delete related documents' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log(`Deleted ${deletedDocs?.length || 0} related documents`);
 
     // Delete file from storage
     console.log('Deleting file from storage:', file.storage_path);
