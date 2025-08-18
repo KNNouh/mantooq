@@ -12,6 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -28,6 +29,7 @@ const MultiChatInterface = memo(() => {
     userRoles
   } = useOptimizedAuth();
 
+  const { toast } = useToast();
   const { language, t } = useLanguage();
 
   const {
@@ -121,23 +123,46 @@ const MultiChatInterface = memo(() => {
 
       // Create new conversation ONLY if no tab is active or tab has no conversation
       if (!conversationId) {
-        conversationId = await createNewConversation(message);
-        
-        // Reload conversations to get the new one
-        await loadConversations();
-        
-        // Find and open the new conversation in a tab
-        setTimeout(async () => {
-          const { data: newConv } = await supabase
-            .from('conversations')
-            .select('id, title, created_at')
-            .eq('id', conversationId)
-            .single();
+        try {
+          conversationId = await createNewConversation(message);
           
-          if (newConv) {
-            openConversationInTab(newConv);
+          // Reload conversations to get the new one
+          await loadConversations();
+          
+          // Find and open the new conversation in a tab
+          setTimeout(async () => {
+            const { data: newConv } = await supabase
+              .from('conversations')
+              .select('id, title, created_at')
+              .eq('id', conversationId)
+              .single();
+            
+            if (newConv) {
+              openConversationInTab(newConv);
+            }
+          }, 100);
+        } catch (convError: any) {
+          console.error('Error creating conversation:', convError);
+          
+          // Show user-friendly error message
+          if (convError.message?.includes('3 محادثات') || convError.message?.includes('more than 3 conversations')) {
+            toast({
+              title: "تم الوصول للحد الأقصى",
+              description: "يمكنك إنشاء 3 محادثات كحد أقصى. يرجى حذف محادثة موجودة لإنشاء محادثة جديدة.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "خطأ في إنشاء المحادثة",
+              description: "حدث خطأ أثناء إنشاء محادثة جديدة. يرجى المحاولة مرة أخرى.",
+              variant: "destructive",
+            });
           }
-        }, 100);
+          
+          // Stop loading on error
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Add user message

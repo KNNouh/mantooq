@@ -197,6 +197,20 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
     if (!userId) throw new Error('User not authenticated');
 
     try {
+      // Check current conversation count
+      const { count, error: countError } = await supabase
+        .from('conversations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (countError) {
+        throw countError;
+      }
+
+      if (count && count >= 3) {
+        throw new Error('يمكنك إنشاء 3 محادثات كحد أقصى. يرجى حذف محادثة موجودة لإنشاء محادثة جديدة.');
+      }
+
       const { data: convData, error: convError } = await supabase
         .from('conversations')
         .insert({
