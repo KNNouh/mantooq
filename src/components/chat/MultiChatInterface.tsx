@@ -10,6 +10,8 @@ import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-s
 import { ConversationTabs } from './ConversationTabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -254,7 +256,15 @@ const MultiChatInterface = memo(() => {
                             : 'bg-muted'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        {message.role === 'assistant' ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{message.content}</div>
+                        )}
                         <div className="text-xs mt-1 opacity-70">
                           {new Date(message.created_at).toLocaleTimeString(language === 'ar' ? 'ar-QA' : 'en-US')}
                         </div>
