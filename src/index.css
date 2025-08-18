@@ -123,29 +123,31 @@ All colors MUST be HSL.
     text-align: right;
   }
   
-  [dir="rtl"] .flex {
+  /* Only reverse flex for specific layout elements that need it */
+  [dir="rtl"] .sidebar-flex {
     flex-direction: row-reverse;
   }
   
-  [dir="rtl"] .flex-row {
-    flex-direction: row-reverse;
-  }
-  
-  [dir="ltr"] .flex {
+  /* Keep normal flex behavior for most elements */
+  .flex-normal {
     flex-direction: row;
   }
   
-  /* Reset flex direction for specific flex utilities */
-  [dir="rtl"] .flex-col {
-    flex-direction: column;
-  }
-  
-  [dir="rtl"] .flex-col-reverse {
-    flex-direction: column-reverse;
+  [dir="rtl"] .flex-normal {
+    flex-direction: row;
   }
   
   /* Arabic typography improvements */
   [dir="rtl"] {
     font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+  }
+  
+  /* Message alignment utilities */
+  .message-user {
+    justify-content: flex-end;
+  }
+  
+  .message-assistant {
+    justify-content: flex-start;
   }
 }

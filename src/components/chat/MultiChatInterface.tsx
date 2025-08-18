@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Settings, LogOut, Upload } from 'lucide-react';
+import { MessageCircle, Settings, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useMultipleConversations } from '@/hooks/useMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
-import { AdminUpload } from './AdminUpload';
 import { ConversationTabs } from './ConversationTabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
@@ -45,7 +44,6 @@ const MultiChatInterface = memo(() => {
 
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get active tab
@@ -138,7 +136,7 @@ const MultiChatInterface = memo(() => {
   }
 
   return (
-    <div className={`flex h-screen bg-background ${language === 'ar' ? 'rtl' : 'ltr'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <div className={`w-80 ${language === 'ar' ? 'border-l' : 'border-r'} flex flex-col`}>
         <div className="p-4 border-b">
@@ -221,19 +219,7 @@ const MultiChatInterface = memo(() => {
         {/* Header with tabs */}
         <div className="border-b">
           <div className="p-4 pb-0">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
-              {userRoles.isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowUpload(!showUpload)}
-                >
-                  <Upload className={`h-4 w-4 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
-                  {t('chat.upload')}
-                </Button>
-              )}
-            </div>
+            <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
           </div>
           
           <ConversationTabs
@@ -245,12 +231,6 @@ const MultiChatInterface = memo(() => {
             onNewTab={openNewConversationTab}
           />
         </div>
-
-        {showUpload && userRoles.isAdmin && (
-          <div className="p-4 border-b bg-muted/50">
-            <AdminUpload />
-          </div>
-        )}
 
         {/* Chat content */}
         {activeTab ? (
@@ -264,9 +244,7 @@ const MultiChatInterface = memo(() => {
                     <div
                       key={message.id}
                       className={`flex ${
-                        language === 'ar' 
-                          ? (message.role === 'user' ? 'justify-start' : 'justify-end')
-                          : (message.role === 'user' ? 'justify-end' : 'justify-start')
+                        message.role === 'user' ? 'justify-end' : 'justify-start'
                       }`}
                     >
                       <div
@@ -285,7 +263,7 @@ const MultiChatInterface = memo(() => {
                   ))
                 )}
                 {isLoading && (
-                  <div className={`flex ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
+                  <div className="flex justify-start">
                     <div className="bg-muted p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
