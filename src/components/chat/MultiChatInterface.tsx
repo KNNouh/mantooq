@@ -171,8 +171,6 @@ const MultiChatInterface = memo(() => {
           [activeTab.conversation.id]: false
         }));
       }
-    } finally {
-      setIsLoading(false);
     }
   }, [inputMessage, isLoading, user, activeTab, createNewConversation, addMessage, loadConversations, openConversationInTab]);
 
