@@ -9,6 +9,8 @@ import { useMultipleConversations } from '@/hooks/useMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { AdminUpload } from './AdminUpload';
 import { ConversationTabs } from './ConversationTabs';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSwitcher from '@/components/ui/language-switcher';
 
 interface Message {
   id: string;
@@ -23,6 +25,8 @@ const MultiChatInterface = memo(() => {
     signOut,
     userRoles
   } = useOptimizedAuth();
+
+  const { language, t } = useLanguage();
 
   const {
     tabs,
@@ -134,13 +138,16 @@ const MultiChatInterface = memo(() => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className={`flex h-screen bg-background ${language === 'ar' ? 'rtl' : 'ltr'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
-      <div className="w-80 border-r flex flex-col">
+      <div className={`w-80 ${language === 'ar' ? 'border-l' : 'border-r'} flex flex-col`}>
         <div className="p-4 border-b">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageCircle className="h-5 w-5" />
-            <h2 className="font-semibold">Chat History</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              <h2 className="font-semibold">{t('chat.history')}</h2>
+            </div>
+            <LanguageSwitcher />
           </div>
           
           <Button 
@@ -149,7 +156,7 @@ const MultiChatInterface = memo(() => {
             variant="outline"
             disabled={tabs.length >= maxTabs}
           >
-            New Chat {tabs.length >= maxTabs && '(Max reached)'}
+            {t('chat.new')} {tabs.length >= maxTabs && `(${t('chat.max_reached')})`}
           </Button>
 
           <ScrollArea className="h-[calc(100vh-300px)]">
@@ -161,7 +168,7 @@ const MultiChatInterface = memo(() => {
                   <button
                     key={conversation.id}
                     onClick={() => openConversationInTab(conversation)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    className={`w-full ${language === 'ar' ? 'text-right' : 'text-left'} p-3 rounded-lg border transition-colors ${
                       tabs.some(tab => tab.conversation.id === conversation.id)
                         ? 'bg-primary/10 border-primary' 
                         : 'hover:bg-muted'
@@ -169,11 +176,11 @@ const MultiChatInterface = memo(() => {
                   >
                     <div className="truncate font-medium">{conversation.title}</div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(conversation.created_at).toLocaleDateString()}
+                      {new Date(conversation.created_at).toLocaleDateString(language === 'ar' ? 'ar-QA' : 'en-US')}
                     </div>
                     {tabs.some(tab => tab.conversation.id === conversation.id) && (
                       <div className="text-xs text-primary font-medium mt-1">
-                        Open in tab
+                        {t('chat.open_in_tab')}
                       </div>
                     )}
                   </button>
@@ -191,8 +198,8 @@ const MultiChatInterface = memo(() => {
                   size="sm"
                   className="flex-1"
                 >
-                  <Settings className="h-4 w-4 mr-1" />
-                  Admin
+                  <Settings className={`h-4 w-4 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
+                  {t('nav.admin')}
                 </Button>
               )}
               <Button
@@ -201,8 +208,8 @@ const MultiChatInterface = memo(() => {
                 size="sm"
                 className={userRoles.isAdmin ? 'flex-1' : 'w-full'}
               >
-                <LogOut className="h-4 w-4 mr-1" />
-                Sign Out
+                <LogOut className={`h-4 w-4 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
+                {t('auth.signout')}
               </Button>
             </div>
           </div>
@@ -215,15 +222,15 @@ const MultiChatInterface = memo(() => {
         <div className="border-b">
           <div className="p-4 pb-0">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold">Chat Assistant</h1>
+              <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
               {userRoles.isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowUpload(!showUpload)}
                 >
-                  <Upload className="h-4 w-4 mr-1" />
-                  Upload
+                  <Upload className={`h-4 w-4 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
+                  {t('chat.upload')}
                 </Button>
               )}
             </div>
@@ -256,7 +263,11 @@ const MultiChatInterface = memo(() => {
                   activeTab.messages.map(message => (
                     <div
                       key={message.id}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${
+                        language === 'ar' 
+                          ? (message.role === 'user' ? 'justify-start' : 'justify-end')
+                          : (message.role === 'user' ? 'justify-end' : 'justify-start')
+                      }`}
                     >
                       <div
                         className={`max-w-[80%] p-3 rounded-lg ${
@@ -267,18 +278,18 @@ const MultiChatInterface = memo(() => {
                       >
                         <div className="whitespace-pre-wrap">{message.content}</div>
                         <div className="text-xs mt-1 opacity-70">
-                          {new Date(message.created_at).toLocaleTimeString()}
+                          {new Date(message.created_at).toLocaleTimeString(language === 'ar' ? 'ar-QA' : 'en-US')}
                         </div>
                       </div>
                     </div>
                   ))
                 )}
                 {isLoading && (
-                  <div className="flex justify-start">
+                  <div className={`flex ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
                     <div className="bg-muted p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                        Thinking...
+                        {t('chat.thinking')}
                       </div>
                     </div>
                   </div>
@@ -292,12 +303,12 @@ const MultiChatInterface = memo(() => {
                 <Input
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder={t('chat.type_message')}
                   className="flex-1"
                   disabled={isLoading}
                 />
                 <Button type="submit" disabled={isLoading || !inputMessage.trim()}>
-                  Send
+                  {t('chat.send')}
                 </Button>
               </form>
             </div>
@@ -306,16 +317,16 @@ const MultiChatInterface = memo(() => {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-muted-foreground max-w-md">
               <MessageCircle className="h-20 w-20 mx-auto mb-6 opacity-30" />
-              <h3 className="text-xl font-medium mb-3">Welcome to Multi-Chat</h3>
+              <h3 className="text-xl font-medium mb-3">{t('chat.welcome')}</h3>
               <p className="text-sm mb-6 leading-relaxed">
-                You can open up to {maxTabs} conversations simultaneously. 
-                Click "New Chat" or select a conversation from the sidebar to get started.
+                {t('chat.welcome_desc')} {maxTabs} {t('chat.conversations_simultaneously')}. 
+                {t('chat.click_new_chat')}
               </p>
               <Button onClick={openNewConversationTab} variant="outline" className="mb-2">
-                Start New Conversation
+                {t('chat.start_new')}
               </Button>
               <p className="text-xs text-muted-foreground">
-                Tabs: {tabs.length}/{maxTabs}
+                {t('chat.tabs')}: {tabs.length}/{maxTabs}
               </p>
             </div>
           </div>

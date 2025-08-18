@@ -117,4 +117,35 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* RTL Support for Arabic */
+  [dir="rtl"] {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .flex {
+    flex-direction: row-reverse;
+  }
+  
+  [dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+  }
+  
+  [dir="ltr"] .flex {
+    flex-direction: row;
+  }
+  
+  /* Reset flex direction for specific flex utilities */
+  [dir="rtl"] .flex-col {
+    flex-direction: column;
+  }
+  
+  [dir="rtl"] .flex-col-reverse {
+    flex-direction: column-reverse;
+  }
+  
+  /* Arabic typography improvements */
+  [dir="rtl"] {
+    font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+  }
 }

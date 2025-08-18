@@ -43,7 +43,28 @@ const translations = {
     'cta.join': 'احصل على استشارة الآن',
     
     // Footer
-    'footer.copyright': '© 2024 منطوق. متخصص في قوانين المناقصات القطرية.'
+    'footer.copyright': '© 2024 منطوق. متخصص في قوانين المناقصات القطرية.',
+    
+    // Chat Interface
+    'chat.history': 'سجل المحادثات',
+    'chat.new': 'محادثة جديدة',
+    'chat.max_reached': 'الحد الأقصى',
+    'chat.open_in_tab': 'مفتوح في التبويب',
+    'chat.assistant': 'المساعد القانوني',
+    'chat.upload': 'رفع ملف',
+    'chat.thinking': 'جاري التفكير...',
+    'chat.type_message': 'اكتب رسالتك...',
+    'chat.send': 'إرسال',
+    'chat.welcome': 'مرحباً بك في منطوق',
+    'chat.welcome_desc': 'يمكنك فتح حتى',
+    'chat.conversations_simultaneously': 'محادثات في نفس الوقت',
+    'chat.click_new_chat': 'اضغط على "محادثة جديدة" أو اختر محادثة من الشريط الجانبي للبدء',
+    'chat.start_new': 'بدء محادثة جديدة',
+    'chat.tabs': 'التبويبات',
+    
+    // Navigation
+    'nav.admin': 'الإدارة',
+    'auth.signout': 'تسجيل الخروج'
   },
   en: {
     // Header
@@ -81,7 +102,28 @@ const translations = {
     'cta.join': 'Get Consultation Now',
     
     // Footer
-    'footer.copyright': '© 2024 Mantooq. Specialized in Qatari Tender Laws.'
+    'footer.copyright': '© 2024 Mantooq. Specialized in Qatari Tender Laws.',
+    
+    // Chat Interface
+    'chat.history': 'Chat History',
+    'chat.new': 'New Chat',
+    'chat.max_reached': 'Max reached',
+    'chat.open_in_tab': 'Open in tab',
+    'chat.assistant': 'Chat Assistant',
+    'chat.upload': 'Upload',
+    'chat.thinking': 'Thinking...',
+    'chat.type_message': 'Type your message...',
+    'chat.send': 'Send',
+    'chat.welcome': 'Welcome to Mantooq',
+    'chat.welcome_desc': 'You can open up to',
+    'chat.conversations_simultaneously': 'conversations simultaneously',
+    'chat.click_new_chat': 'Click "New Chat" or select a conversation from the sidebar to get started',
+    'chat.start_new': 'Start New Conversation',
+    'chat.tabs': 'Tabs',
+    
+    // Navigation
+    'nav.admin': 'Admin',
+    'auth.signout': 'Sign Out'
   }
 };
 
