@@ -150,4 +150,66 @@ All colors MUST be HSL.
   .message-assistant {
     justify-content: flex-start;
   }
+
+  /* Arabic text improvements */
+  .arabic-text {
+    direction: rtl;
+    unicode-bidi: bidi-override;
+    text-align: right;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.7;
+  }
+
+  /* RTL prose styling for markdown */
+  .prose-rtl {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .prose-rtl p {
+    text-align: right;
+    direction: rtl;
+    unicode-bidi: bidi-override;
+    line-height: 1.7;
+  }
+
+  .prose-rtl ul, .prose-rtl ol {
+    text-align: right;
+    direction: rtl;
+  }
+
+  .prose-rtl li {
+    text-align: right;
+    direction: rtl;
+    unicode-bidi: bidi-override;
+  }
+
+  .prose-rtl blockquote {
+    border-left: none;
+    border-right: 4px solid hsl(var(--border));
+    padding-left: 0;
+    padding-right: 1rem;
+    text-align: right;
+    direction: rtl;
+  }
+
+  .prose-rtl h1, .prose-rtl h2, .prose-rtl h3, .prose-rtl h4, .prose-rtl h5, .prose-rtl h6 {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* Fix punctuation alignment in Arabic */
+  .prose-rtl p::before,
+  .prose-rtl p::after {
+    content: '';
+  }
+
+  /* Better Arabic font rendering */
+  [lang="ar"], .arabic-text, .prose-rtl {
+    font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+    font-variant-ligatures: common-ligatures contextual;
+    text-rendering: optimizeLegibility;
+  }
 }

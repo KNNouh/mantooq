@@ -18,6 +18,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  conversation_id: string;
 }
 
 const MultiChatInterface = memo(() => {
@@ -46,6 +47,7 @@ const MultiChatInterface = memo(() => {
 
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationLoadingStates, setConversationLoadingStates] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get active tab
@@ -67,6 +69,36 @@ const MultiChatInterface = memo(() => {
     }
   }, [user, loadConversations]);
 
+  // Real-time subscription for assistant messages to stop loading
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('messages-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `role=eq.assistant`
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          // Stop loading for this conversation when assistant responds
+          setConversationLoadingStates(prev => ({
+            ...prev,
+            [newMessage.conversation_id]: false
+          }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   // Optimized message sending with better error handling and conversation continuity
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +110,14 @@ const MultiChatInterface = memo(() => {
 
     try {
       let conversationId = activeTab?.conversation.id;
+      
+      // Set loading state for this specific conversation
+      if (conversationId) {
+        setConversationLoadingStates(prev => ({
+          ...prev,
+          [conversationId!]: true
+        }));
+      }
 
       // Create new conversation ONLY if no tab is active or tab has no conversation
       if (!conversationId) {
@@ -114,11 +154,23 @@ const MultiChatInterface = memo(() => {
       if (error) {
         console.error('Error triggering chat response:', error);
         await addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
+        // Stop loading on error
+        setConversationLoadingStates(prev => ({
+          ...prev,
+          [conversationId!]: false
+        }));
       }
 
     } catch (error) {
       console.error('Error sending message:', error);
       await addMessage(activeTab?.conversation.id || '', 'assistant', 'An error occurred while processing your message.');
+      // Stop loading on error
+      if (activeTab?.conversation.id) {
+        setConversationLoadingStates(prev => ({
+          ...prev,
+          [activeTab.conversation.id]: false
+        }));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -257,13 +309,15 @@ const MultiChatInterface = memo(() => {
                         }`}
                       >
                         {message.role === 'assistant' ? (
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <div className={`prose prose-sm dark:prose-invert max-w-none ${language === 'ar' ? 'prose-rtl' : ''}`}>
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {message.content}
                             </ReactMarkdown>
                           </div>
                         ) : (
-                          <div className="whitespace-pre-wrap">{message.content}</div>
+                          <div className={`whitespace-pre-wrap ${language === 'ar' ? 'text-right arabic-text' : ''}`}>
+                            {message.content}
+                          </div>
                         )}
                         <div className="text-xs mt-1 opacity-70">
                           {new Date(message.created_at).toLocaleTimeString(language === 'ar' ? 'ar-QA' : 'en-US')}
@@ -272,8 +326,8 @@ const MultiChatInterface = memo(() => {
                     </div>
                   ))
                 )}
-                {isLoading && (
-                  <div className="flex justify-start">
+                {(isLoading || (activeTab && conversationLoadingStates[activeTab.conversation.id])) && (
+                  <div className={`flex ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
                     <div className="bg-muted/80 backdrop-blur-sm p-4 rounded-2xl border border-border/50 shadow-sm">
                       <div className="flex items-center gap-3">
                         <div className="relative">
