@@ -264,10 +264,17 @@ const MultiChatInterface = memo(() => {
                 )}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-muted p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                        {t('chat.thinking')}
+                    <div className="bg-muted/80 backdrop-blur-sm p-4 rounded-2xl border border-border/50 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="animate-spin h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full"></div>
+                          <div className="absolute inset-0 animate-pulse">
+                            <div className="h-5 w-5 border-2 border-transparent border-t-primary/50 rounded-full"></div>
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-foreground/80 animate-pulse">
+                          {t('chat.thinking')}
+                        </span>
                       </div>
                     </div>
                   </div>
