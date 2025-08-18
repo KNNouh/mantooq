@@ -249,14 +249,17 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
     }
   }, [userId, loadConversations]);
 
-  // Real-time subscription for all open conversations - optimized to prevent constant recreations
+  // Real-time subscription for all open conversations with improved handling
   useEffect(() => {
     if (!userId) return;
 
-    console.log('Setting up real-time subscription for multiple conversations');
+    console.log('🔄 Setting up real-time subscription for multiple conversations');
+    
+    // Create a unique channel name to avoid conflicts
+    const channelName = `multi-messages-${userId}-${Date.now()}`;
     
     const channel = supabase
-      .channel('multi-messages-realtime')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -266,40 +269,59 @@ export function useMultipleConversations(userId: string | null): UseMultipleConv
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('New message received via realtime:', payload);
+          console.log('📨 New message received via realtime:', payload);
           const newMessage = payload.new as Message;
           
-          // Only add assistant messages to prevent duplicates
-          if (newMessage.role === 'assistant') {
-            setTabs(prev => prev.map(tab => {
-              if (tab.conversation.id === newMessage.conversation_id) {
-                // Check if message already exists to prevent duplicates
-                if (tab.messages.find(msg => msg.id === newMessage.id)) {
-                  return tab;
-                }
-                
-                const updatedMessages = [...tab.messages, newMessage];
-                return {
-                  ...tab,
-                  messages: updatedMessages,
-                  // Increase unread count if it's not the active tab
-                  unreadCount: tab.id !== activeTabId ? tab.unreadCount + 1 : tab.unreadCount
-                };
+          // Handle all message types - user and assistant
+          setTabs(prev => prev.map(tab => {
+            if (tab.conversation.id === newMessage.conversation_id) {
+              // Enhanced duplicate check with timestamp and ID
+              const messageExists = tab.messages.some(msg => 
+                msg.id === newMessage.id || 
+                (msg.content === newMessage.content && 
+                 Math.abs(new Date(msg.created_at).getTime() - new Date(newMessage.created_at).getTime()) < 1000)
+              );
+              
+              if (messageExists) {
+                console.log('🔄 Duplicate message detected, skipping:', newMessage.id);
+                return tab;
               }
-              return tab;
-            }));
-          }
+              
+              const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+              
+              console.log(`✅ Added message to tab ${tab.id}:`, newMessage.content.slice(0, 50));
+              
+              return {
+                ...tab,
+                messages: updatedMessages,
+                // Only increase unread count for assistant messages and if it's not the active tab
+                unreadCount: tab.id !== activeTabId && newMessage.role === 'assistant' 
+                  ? tab.unreadCount + 1 
+                  : tab.unreadCount
+              };
+            }
+            return tab;
+          }));
         }
       )
       .subscribe((status) => {
-        console.log('Multi-conversation real-time subscription status:', status);
+        console.log(`🔌 Real-time subscription status for ${channelName}:`, status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time subscription established successfully');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Real-time subscription error');
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⏰ Real-time subscription timed out');
+        }
       });
 
     return () => {
-      console.log('Cleaning up multi-conversation real-time subscription');
+      console.log(`🧹 Cleaning up real-time subscription: ${channelName}`);
       supabase.removeChannel(channel);
     };
-  }, [userId]); // Only depend on userId to prevent constant re-subscriptions
+  }, [userId, activeTabId]); // Include activeTabId for proper unread count handling
 
   const memoizedReturn = useMemo(() => ({
     tabs,
