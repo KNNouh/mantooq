@@ -39,6 +39,8 @@ const MultiChatInterface = memo(() => {
       ...prev,
       [conversationId]: false
     }));
+    // Also clear global loading state when assistant responds
+    setIsLoading(false);
   }, []);
 
   const {
@@ -73,12 +75,27 @@ const MultiChatInterface = memo(() => {
     }
   }, [activeTab?.messages]);
 
-  // Load conversations when user changes
+  // Load conversations when user changes and reset loading states
   useEffect(() => {
     if (user) {
       loadConversations();
+      // Reset loading states on mount/user change
+      setIsLoading(false);
+      setConversationLoadingStates({});
     }
   }, [user, loadConversations]);
+
+  // Timeout fallback to clear stuck loading states
+  useEffect(() => {
+    if (isLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ Loading state timeout - clearing stuck loading state');
+        setIsLoading(false);
+      }, 30000); // 30 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading]);
 
   // Optimized message sending with better error handling and conversation continuity
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
@@ -159,16 +176,23 @@ const MultiChatInterface = memo(() => {
         console.error('Error triggering chat response:', error);
         await addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
         // Stop loading on error
+        setIsLoading(false);
         setConversationLoadingStates(prev => ({
           ...prev,
           [conversationId!]: false
         }));
+      } else {
+        // Clear global loading state immediately after successful webhook trigger
+        // The assistant message callback will clear it again when the response arrives
+        setIsLoading(false);
+        console.log('✅ Webhook triggered successfully, cleared global loading state');
       }
 
     } catch (error) {
       console.error('Error sending message:', error);
       await addMessage(activeTab?.conversation.id || '', 'assistant', 'An error occurred while processing your message.');
       // Stop loading on error
+      setIsLoading(false);
       if (activeTab?.conversation.id) {
         setConversationLoadingStates(prev => ({
           ...prev,
