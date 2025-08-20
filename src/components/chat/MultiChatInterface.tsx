@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Settings, LogOut } from 'lucide-react';
+import { MessageCircle, Settings, LogOut, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useMultipleConversations } from '@/hooks/useMultipleConversations';
@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
 import ChatLoadingIndicator from './ChatLoadingIndicator';
+import { DeleteConversationDialog } from './DeleteConversationDialog';
 
 interface Message {
   id: string;
@@ -37,6 +38,8 @@ const MultiChatInterface = memo(() => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationLoadingStates, setConversationLoadingStates] = useState<Record<string, boolean>>({});
   const [loadingLogIds, setLoadingLogIds] = useState<Record<string, string>>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<{id: string, title: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Callback to handle assistant messages and clear loading states
@@ -67,7 +70,8 @@ const MultiChatInterface = memo(() => {
     setActiveTab,
     addMessage,
     createNewConversation,
-    openNewConversationTab
+    openNewConversationTab,
+    deleteConversation
   } = useMultipleConversations(user?.id || null, handleAssistantMessage);
 
   // Get active tab
@@ -107,6 +111,37 @@ const MultiChatInterface = memo(() => {
     }));
     setIsLoading(false);
   }, []);
+
+  const handleDeleteClick = useCallback((conversation: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConversationToDelete({
+      id: conversation.id,
+      title: conversation.title
+    });
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!conversationToDelete) return;
+    
+    try {
+      await deleteConversation(conversationToDelete.id);
+      toast({
+        title: t('delete.success'),
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: t('delete.error'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive"
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+    }
+  }, [conversationToDelete, deleteConversation, toast, t]);
 
   // Auto-scroll to bottom when new messages arrive in active tab
   useEffect(() => {
@@ -293,25 +328,37 @@ const MultiChatInterface = memo(() => {
                 <ConversationSkeleton />
               ) : (
                 conversations.map(conversation => (
-                  <button
+                  <div
                     key={conversation.id}
-                    onClick={() => openConversationInTab(conversation)}
-                    className={`w-full ${language === 'ar' ? 'text-right' : 'text-left'} p-3 rounded-lg border transition-colors ${
+                    className={`group relative w-full ${language === 'ar' ? 'text-right' : 'text-left'} rounded-lg border transition-colors ${
                       tabs.some(tab => tab.conversation.id === conversation.id)
                         ? 'bg-primary/10 border-primary' 
                         : 'hover:bg-muted'
                     }`}
                   >
-                    <div className="truncate font-medium">{conversation.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(conversation.created_at).toLocaleDateString(language === 'ar' ? 'ar-QA' : 'en-US')}
-                    </div>
-                    {tabs.some(tab => tab.conversation.id === conversation.id) && (
-                      <div className="text-xs text-primary font-medium mt-1">
-                        {t('chat.open_in_tab')}
+                    <button
+                      onClick={() => openConversationInTab(conversation)}
+                      className="w-full p-3 text-left"
+                    >
+                      <div className="truncate font-medium pr-8">{conversation.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(conversation.created_at).toLocaleDateString(language === 'ar' ? 'ar-QA' : 'en-US')}
                       </div>
-                    )}
-                  </button>
+                      {tabs.some(tab => tab.conversation.id === conversation.id) && (
+                        <div className="text-xs text-primary font-medium mt-1">
+                          {t('chat.open_in_tab')}
+                        </div>
+                      )}
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={(e) => handleDeleteClick(conversation, e)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ))
               )}
             </div>
@@ -448,6 +495,13 @@ const MultiChatInterface = memo(() => {
           </div>
         )}
       </div>
+
+      <DeleteConversationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        conversationTitle={conversationToDelete?.title || ''}
+      />
     </div>
   );
 });

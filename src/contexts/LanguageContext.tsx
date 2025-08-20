@@ -62,9 +62,18 @@ const translations = {
     'chat.start_new': 'بدء محادثة جديدة',
     'chat.tabs': 'التبويبات',
     
-    // Navigation
+     // Navigation
     'nav.admin': 'الإدارة',
-    'auth.signout': 'تسجيل الخروج'
+    'auth.signout': 'تسجيل الخروج',
+    
+    // Delete conversation
+    'delete.conversation': 'حذف المحادثة',
+    'delete.confirm.title': 'تأكيد الحذف',
+    'delete.confirm.message': 'هل أنت متأكد من حذف هذه المحادثة؟ سيتم حذف جميع الرسائل نهائياً ولن يمكن استردادها.',
+    'delete.confirm.cancel': 'إلغاء',
+    'delete.confirm.delete': 'حذف',
+    'delete.success': 'تم حذف المحادثة بنجاح',
+    'delete.error': 'حدث خطأ في حذف المحادثة'
   },
   en: {
     // Header
@@ -121,9 +130,18 @@ const translations = {
     'chat.start_new': 'Start New Conversation',
     'chat.tabs': 'Tabs',
     
-    // Navigation
+     // Navigation
     'nav.admin': 'Admin',
-    'auth.signout': 'Sign Out'
+    'auth.signout': 'Sign Out',
+    
+    // Delete conversation
+    'delete.conversation': 'Delete Conversation',
+    'delete.confirm.title': 'Confirm Delete',
+    'delete.confirm.message': 'Are you sure you want to delete this conversation? All messages will be permanently deleted and cannot be recovered.',
+    'delete.confirm.cancel': 'Cancel',
+    'delete.confirm.delete': 'Delete',
+    'delete.success': 'Conversation deleted successfully',
+    'delete.error': 'Error deleting conversation'
   }
 };
 

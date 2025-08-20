@@ -36,6 +36,7 @@ interface UseMultipleConversationsReturn {
   addMessage: (conversationId: string, role: 'user' | 'assistant', content: string) => Promise<void>;
   createNewConversation: (firstMessage: string) => Promise<string>;
   openNewConversationTab: () => void;
+  deleteConversation: (conversationId: string) => Promise<void>;
 }
 
 const MAX_TABS = 3;
@@ -255,6 +256,41 @@ export function useMultipleConversations(
     setActiveTabId(newTabId);
   }, [tabs.length]);
 
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!userId) throw new Error('User not authenticated');
+
+    try {
+      // Delete the conversation (messages will cascade delete)
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Remove conversation from local state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+
+      // Close any tabs that were using this conversation
+      setTabs(prev => {
+        const filteredTabs = prev.filter(tab => tab.conversation.id !== conversationId);
+        
+        // If we removed the active tab, switch to another tab or clear active
+        if (activeTabId && prev.find(tab => tab.id === activeTabId)?.conversation.id === conversationId) {
+          const newActiveTab = filteredTabs.length > 0 ? filteredTabs[0].id : null;
+          setActiveTabId(newActiveTab);
+        }
+        
+        return filteredTabs;
+      });
+
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      throw error;
+    }
+  }, [userId, activeTabId]);
+
   // Load conversations when userId changes
   useEffect(() => {
     if (userId) {
@@ -358,7 +394,8 @@ export function useMultipleConversations(
     setActiveTab,
     addMessage,
     createNewConversation,
-    openNewConversationTab
+    openNewConversationTab,
+    deleteConversation
   }), [
     tabs,
     activeTabId,
@@ -370,7 +407,8 @@ export function useMultipleConversations(
     setActiveTab,
     addMessage,
     createNewConversation,
-    openNewConversationTab
+    openNewConversationTab,
+    deleteConversation
   ]);
 
   return memoizedReturn;
