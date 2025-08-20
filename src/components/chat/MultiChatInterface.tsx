@@ -13,6 +13,7 @@ import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
+import ChatLoadingIndicator from './ChatLoadingIndicator';
 
 interface Message {
   id: string;
@@ -32,12 +33,23 @@ const MultiChatInterface = memo(() => {
   const { toast } = useToast();
   const { language, t } = useLanguage();
   
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversationLoadingStates, setConversationLoadingStates] = useState<Record<string, boolean>>({});
+  const [loadingLogIds, setLoadingLogIds] = useState<Record<string, string>>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
   // Callback to handle assistant messages and clear loading states
   const handleAssistantMessage = useCallback((conversationId: string) => {
     console.log('🛑 Clearing loading state for conversation:', conversationId);
     setConversationLoadingStates(prev => ({
       ...prev,
       [conversationId]: false
+    }));
+    // Clear loading log ID when conversation is done
+    setLoadingLogIds(prev => ({
+      ...prev,
+      [conversationId]: ''
     }));
     // Also clear global loading state when assistant responds
     setIsLoading(false);
@@ -58,13 +70,43 @@ const MultiChatInterface = memo(() => {
     openNewConversationTab
   } = useMultipleConversations(user?.id || null, handleAssistantMessage);
 
-  const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversationLoadingStates, setConversationLoadingStates] = useState<Record<string, boolean>>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   // Get active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
+
+  // Retry function for failed requests
+  const handleRetry = useCallback((conversationId: string) => {
+    // Resend the last user message
+    const lastUserMessage = activeTab?.messages
+      .filter(m => m.role === 'user')
+      .pop();
+    
+    if (lastUserMessage && conversationId) {
+      setInputMessage(lastUserMessage.content);
+      // Clear the loading states
+      setConversationLoadingStates(prev => ({
+        ...prev,
+        [conversationId]: false
+      }));
+      setLoadingLogIds(prev => ({
+        ...prev,
+        [conversationId]: ''
+      }));
+    }
+  }, [activeTab?.messages]);
+
+  // Handle timeout for loading indicator
+  const handleTimeout = useCallback((conversationId: string) => {
+    console.warn('⚠️ Chat loading timeout for conversation:', conversationId);
+    setConversationLoadingStates(prev => ({
+      ...prev,
+      [conversationId]: false
+    }));
+    setLoadingLogIds(prev => ({
+      ...prev,
+      [conversationId]: ''
+    }));
+    setIsLoading(false);
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive in active tab
   useEffect(() => {
@@ -82,16 +124,17 @@ const MultiChatInterface = memo(() => {
       // Reset loading states on mount/user change
       setIsLoading(false);
       setConversationLoadingStates({});
+      setLoadingLogIds({});
     }
   }, [user, loadConversations]);
 
-  // Timeout fallback to clear stuck loading states
+  // Timeout fallback to clear stuck loading states (2 minutes)
   useEffect(() => {
     if (isLoading) {
       const timeout = setTimeout(() => {
         console.warn('⚠️ Loading state timeout - clearing stuck loading state');
         setIsLoading(false);
-      }, 30000); // 30 second timeout
+      }, 120000); // 2 minute timeout
 
       return () => clearTimeout(timeout);
     }
@@ -165,7 +208,7 @@ const MultiChatInterface = memo(() => {
       await addMessage(conversationId, 'user', message);
 
       // Trigger webhook to get AI response
-      const { error } = await supabase.functions.invoke('trigger-chat-response', {
+      const { data: webhookResponse, error } = await supabase.functions.invoke('trigger-chat-response', {
         body: {
           message,
           conversationId
@@ -182,6 +225,13 @@ const MultiChatInterface = memo(() => {
           [conversationId!]: false
         }));
       } else {
+        // Store the logId for progress tracking
+        if (webhookResponse?.logId && conversationId) {
+          setLoadingLogIds(prev => ({
+            ...prev,
+            [conversationId!]: webhookResponse.logId
+          }));
+        }
         // Clear global loading state immediately after successful webhook trigger
         // The assistant message callback will clear it again when the response arrives
         setIsLoading(false);
@@ -353,21 +403,12 @@ const MultiChatInterface = memo(() => {
                   ))
                 )}
                 {(isLoading || (activeTab && conversationLoadingStates[activeTab.conversation.id])) && (
-                  <div className={`flex ${language === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                    <div className="bg-muted/80 backdrop-blur-sm p-4 rounded-2xl border border-border/50 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="animate-spin h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full"></div>
-                          <div className="absolute inset-0 animate-pulse">
-                            <div className="h-5 w-5 border-2 border-transparent border-t-primary/50 rounded-full"></div>
-                          </div>
-                        </div>
-                        <span className="text-sm font-medium text-foreground/80 animate-pulse">
-                          {t('chat.thinking')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <ChatLoadingIndicator
+                    conversationId={activeTab.conversation.id}
+                    logId={loadingLogIds[activeTab.conversation.id]}
+                    onRetry={() => handleRetry(activeTab.conversation.id)}
+                    onTimeout={() => handleTimeout(activeTab.conversation.id)}
+                  />
                 )}
                 <div ref={messagesEndRef} />
               </div>
