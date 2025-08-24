@@ -224,15 +224,7 @@ export type Database = {
           stage?: string
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "processing_log_file_id_fkey"
-            columns: ["file_id"]
-            isOneToOne: false
-            referencedRelation: "kb_files"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
