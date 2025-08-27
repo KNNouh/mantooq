@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Scale, BookOpen, Users, Clock, Gavel } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
+import AboutDialog from '@/components/ui/about-dialog';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -67,17 +68,15 @@ const Home = () => {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              {t('hero.title')}
-            </span>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-[hsl(var(--text-gray-dark))]">
+            {t('hero.title')}
           </h1>
           
-          <h2 className="text-2xl md:text-3xl font-semibold text-primary mb-4">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-[hsl(var(--text-blue-primary))]">
             {t('hero.subtitle')}
           </h2>
           
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl mb-8 max-w-4xl mx-auto leading-relaxed text-[hsl(var(--text-blue-secondary))]">
             {t('hero.description')}
           </p>
           
@@ -90,14 +89,16 @@ const Home = () => {
               <MessageCircle className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
               {t('hero.start_chat')}
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="border-primary/20 text-lg px-8 py-3"
-            >
-              <BookOpen className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
-              {t('hero.learn_more')}
-            </Button>
+            <AboutDialog>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-primary/20 text-lg px-8 py-3"
+              >
+                <BookOpen className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                {t('hero.learn_more')}
+              </Button>
+            </AboutDialog>
           </div>
 
           {/* Brand Pattern */}
@@ -116,14 +117,9 @@ const Home = () => {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              {t('features.title')}
-            </span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            {t('features.title')}
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t('features.subtitle')}
-          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -174,7 +170,7 @@ const Home = () => {
       {/* Stats Section */}
       <section className="bg-card/50 py-16 border-y">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-3 gap-8 text-center max-w-4xl mx-auto">
             <div>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">24/7</div>
               <p className="text-muted-foreground">{t('stats.available')}</p>
@@ -184,36 +180,10 @@ const Home = () => {
               <p className="text-muted-foreground">{t('stats.accuracy')}</p>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">1</div>
-              <p className="text-muted-foreground">{t('stats.laws')}</p>
-            </div>
-            <div>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">∞</div>
               <p className="text-muted-foreground">{t('stats.unlimited')}</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            <span className="bg-gradient-mantooq bg-clip-text text-transparent">
-              {t('cta.title')}
-            </span>
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            {t('cta.subtitle')}
-          </p>
-          <Button 
-            size="lg" 
-            onClick={() => navigate('/auth')}
-            className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-lg px-8 py-4"
-          >
-            <Gavel className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
-            {t('cta.join')}
-          </Button>
         </div>
       </section>
 

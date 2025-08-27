@@ -66,6 +66,11 @@ All colors MUST be HSL.
     --mantooq-gray: 0 0% 35%;
     --mantooq-sapphire: 216 100% 36%;
     --mantooq-white: 0 0% 100%;
+    
+    /* Custom text colors from specifications */
+    --text-gray-dark: 0 0% 18%;      /* #2e2e2e */
+    --text-blue-primary: 216 54% 39%; /* #2d459c */
+    --text-blue-secondary: 216 30% 31%; /* #3c4b66 */
   }
 
   .dark {
