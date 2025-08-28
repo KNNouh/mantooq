@@ -2,18 +2,18 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Settings, LogOut, Trash2 } from 'lucide-react';
+import { MessageCircle, Settings, LogOut, Trash2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
-import { useMultipleConversations } from '@/hooks/useMultipleConversations';
+import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
-import { ConversationTabs } from './ConversationTabs';
+import { ImprovedConversationTabs } from './ImprovedConversationTabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
-import ChatLoadingIndicator from './ChatLoadingIndicator';
+import ImprovedChatLoadingIndicator from './ImprovedChatLoadingIndicator';
 import { DeleteConversationDialog } from './DeleteConversationDialog';
 
 interface Message {
@@ -35,34 +35,16 @@ const MultiChatInterface = memo(() => {
   const { language, t } = useLanguage();
   
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversationLoadingStates, setConversationLoadingStates] = useState<Record<string, boolean>>({});
-  const [loadingLogIds, setLoadingLogIds] = useState<Record<string, string>>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<{id: string, title: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Callback to handle assistant messages and clear loading states
-  const handleAssistantMessage = useCallback((conversationId: string) => {
-    console.log('🛑 Clearing loading state for conversation:', conversationId);
-    setConversationLoadingStates(prev => ({
-      ...prev,
-      [conversationId]: false
-    }));
-    // Clear loading log ID when conversation is done
-    setLoadingLogIds(prev => ({
-      ...prev,
-      [conversationId]: ''
-    }));
-    // Also clear global loading state when assistant responds
-    setIsLoading(false);
-  }, []);
 
   const {
     tabs,
     activeTabId,
     conversations,
     loading: conversationsLoading,
+    loadingState,
     maxTabs,
     loadConversations,
     openConversationInTab,
@@ -71,46 +53,34 @@ const MultiChatInterface = memo(() => {
     addMessage,
     createNewConversation,
     openNewConversationTab,
-    deleteConversation
-  } = useMultipleConversations(user?.id || null, handleAssistantMessage);
+    deleteConversation,
+    setLoadingState,
+    clearLoadingState
+  } = useImprovedMultipleConversations(user?.id || null);
 
   // Get active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
 
   // Retry function for failed requests
-  const handleRetry = useCallback((conversationId: string) => {
+  const handleRetry = useCallback(() => {
+    if (!activeTab) return;
+    
     // Resend the last user message
-    const lastUserMessage = activeTab?.messages
+    const lastUserMessage = activeTab.messages
       .filter(m => m.role === 'user')
       .pop();
     
-    if (lastUserMessage && conversationId) {
+    if (lastUserMessage) {
       setInputMessage(lastUserMessage.content);
-      // Clear the loading states
-      setConversationLoadingStates(prev => ({
-        ...prev,
-        [conversationId]: false
-      }));
-      setLoadingLogIds(prev => ({
-        ...prev,
-        [conversationId]: ''
-      }));
+      clearLoadingState();
     }
-  }, [activeTab?.messages]);
+  }, [activeTab, clearLoadingState]);
 
   // Handle timeout for loading indicator
-  const handleTimeout = useCallback((conversationId: string) => {
-    console.warn('⚠️ Chat loading timeout for conversation:', conversationId);
-    setConversationLoadingStates(prev => ({
-      ...prev,
-      [conversationId]: false
-    }));
-    setLoadingLogIds(prev => ({
-      ...prev,
-      [conversationId]: ''
-    }));
-    setIsLoading(false);
-  }, []);
+  const handleTimeout = useCallback(() => {
+    console.warn('⚠️ Chat loading timeout');
+    clearLoadingState();
+  }, [clearLoadingState]);
 
   const handleDeleteClick = useCallback((conversation: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -152,58 +122,39 @@ const MultiChatInterface = memo(() => {
     }
   }, [activeTab?.messages]);
 
-  // Load conversations when user changes and reset loading states
+  // Load conversations when user changes
   useEffect(() => {
     if (user) {
       loadConversations();
-      // Reset loading states on mount/user change
-      setIsLoading(false);
-      setConversationLoadingStates({});
-      setLoadingLogIds({});
+      clearLoadingState();
     }
-  }, [user, loadConversations]);
+  }, [user, loadConversations, clearLoadingState]);
 
-  // Timeout fallback to clear stuck loading states (2 minutes)
-  useEffect(() => {
-    if (isLoading) {
-      const timeout = setTimeout(() => {
-        console.warn('⚠️ Loading state timeout - clearing stuck loading state');
-        setIsLoading(false);
-      }, 120000); // 2 minute timeout
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isLoading]);
-
-  // Optimized message sending with better error handling and conversation continuity
+  // Optimized message sending with improved error handling
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading || !user) return;
+    if (!inputMessage.trim() || loadingState.isLoading || !user) return;
     
     const message = inputMessage.trim();
     setInputMessage('');
-    setIsLoading(true);
 
     try {
       let conversationId = activeTab?.conversation.id;
       
-      // Set loading state for this specific conversation
-      if (conversationId) {
-        setConversationLoadingStates(prev => ({
-          ...prev,
-          [conversationId!]: true
-        }));
-      }
+      // Set loading state
+      setLoadingState({ 
+        isLoading: true, 
+        conversationId: conversationId || 'new'
+      });
 
-      // Create new conversation ONLY if no tab is active or tab has no conversation
+      // Create new conversation if needed
       if (!conversationId) {
         try {
           conversationId = await createNewConversation(message);
           
-          // Reload conversations to get the new one
+          // Reload conversations and open the new one
           await loadConversations();
           
-          // Find and open the new conversation in a tab
           setTimeout(async () => {
             const { data: newConv } = await supabase
               .from('conversations')
@@ -218,7 +169,6 @@ const MultiChatInterface = memo(() => {
         } catch (convError: any) {
           console.error('Error creating conversation:', convError);
           
-          // Show user-friendly error message
           if (convError.message?.includes('3 محادثات') || convError.message?.includes('more than 3 conversations')) {
             toast({
               title: "تم الوصول للحد الأقصى",
@@ -233,16 +183,21 @@ const MultiChatInterface = memo(() => {
             });
           }
           
-          // Stop loading on error
-          setIsLoading(false);
+          clearLoadingState();
           return;
         }
       }
 
+      // Update loading state with actual conversation ID
+      setLoadingState({ 
+        isLoading: true, 
+        conversationId 
+      });
+
       // Add user message
       await addMessage(conversationId, 'user', message);
 
-      // Trigger webhook to get AI response
+      // Trigger webhook for AI response
       const { data: webhookResponse, error } = await supabase.functions.invoke('trigger-chat-response', {
         body: {
           message,
@@ -252,40 +207,37 @@ const MultiChatInterface = memo(() => {
 
       if (error) {
         console.error('Error triggering chat response:', error);
-        await addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
-        // Stop loading on error
-        setIsLoading(false);
-        setConversationLoadingStates(prev => ({
-          ...prev,
-          [conversationId!]: false
-        }));
+        await addMessage(conversationId!, 'assistant', 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.');
+        clearLoadingState();
+        toast({
+          title: "خطأ في الإرسال",
+          description: "حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.",
+          variant: "destructive",
+        });
       } else {
-        // Store the logId for progress tracking
-        if (webhookResponse?.logId && conversationId) {
-          setLoadingLogIds(prev => ({
-            ...prev,
-            [conversationId!]: webhookResponse.logId
-          }));
+        // Update loading state with log ID if available
+        if (webhookResponse?.logId) {
+          setLoadingState({ 
+            isLoading: true, 
+            conversationId,
+            logId: webhookResponse.logId 
+          });
         }
-        // Clear global loading state immediately after successful webhook trigger
-        // The assistant message callback will clear it again when the response arrives
-        setIsLoading(false);
-        console.log('✅ Webhook triggered successfully, cleared global loading state');
       }
 
     } catch (error) {
       console.error('Error sending message:', error);
-      await addMessage(activeTab?.conversation.id || '', 'assistant', 'An error occurred while processing your message.');
-      // Stop loading on error
-      setIsLoading(false);
       if (activeTab?.conversation.id) {
-        setConversationLoadingStates(prev => ({
-          ...prev,
-          [activeTab.conversation.id]: false
-        }));
+        await addMessage(activeTab.conversation.id, 'assistant', 'حدث خطأ أثناء معالجة رسالتك.');
       }
+      clearLoadingState();
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
     }
-  }, [inputMessage, isLoading, user, activeTab, createNewConversation, addMessage, loadConversations, openConversationInTab]);
+  }, [inputMessage, loadingState.isLoading, user, activeTab, createNewConversation, addMessage, loadConversations, openConversationInTab, setLoadingState, clearLoadingState, toast]);
 
   if (!user) {
     return (
@@ -399,7 +351,7 @@ const MultiChatInterface = memo(() => {
             <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
           </div>
           
-          <ConversationTabs
+          <ImprovedConversationTabs
             tabs={tabs}
             activeTabId={activeTabId}
             maxTabs={maxTabs}
@@ -449,12 +401,11 @@ const MultiChatInterface = memo(() => {
                     </div>
                   ))
                 )}
-                {(isLoading || (activeTab && conversationLoadingStates[activeTab.conversation.id])) && (
-                  <ChatLoadingIndicator
-                    conversationId={activeTab.conversation.id}
-                    logId={loadingLogIds[activeTab.conversation.id]}
-                    onRetry={() => handleRetry(activeTab.conversation.id)}
-                    onTimeout={() => handleTimeout(activeTab.conversation.id)}
+                {loadingState.isLoading && activeTab && (
+                  <ImprovedChatLoadingIndicator
+                    conversationId={loadingState.conversationId || activeTab.conversation.id}
+                    onRetry={handleRetry}
+                    onTimeout={handleTimeout}
                   />
                 )}
                 <div ref={messagesEndRef} />
@@ -468,10 +419,18 @@ const MultiChatInterface = memo(() => {
                   onChange={e => setInputMessage(e.target.value)}
                   placeholder={t('chat.type_message')}
                   className="flex-1"
-                  disabled={isLoading}
+                  disabled={loadingState.isLoading}
                 />
-                <Button type="submit" disabled={isLoading || !inputMessage.trim()}>
-                  {t('chat.send')}
+                <Button 
+                  type="submit" 
+                  disabled={loadingState.isLoading || !inputMessage.trim()}
+                  className="px-4"
+                >
+                  {loadingState.isLoading ? (
+                    <div className="animate-spin h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </form>
             </div>
