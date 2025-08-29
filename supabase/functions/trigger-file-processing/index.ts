@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     console.log('Triggering n8n webhook for file processing:', webhookPayload);
 
     // Send webhook to n8n
-    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d';
+    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook/c5aeeb2d-8cae-449d-899c-48b145969c1d;
     
     try {
       const webhookResponse = await fetch(webhookUrl, {
