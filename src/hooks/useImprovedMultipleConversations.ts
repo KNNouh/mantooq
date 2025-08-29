@@ -37,6 +37,10 @@ interface UseImprovedMultipleConversationsReturn {
   loading: boolean;
   loadingState: LoadingState;
   maxTabs: number;
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
+  retryCount: number;
+  isConnected: boolean;
+  reconnect: () => void;
   loadConversations: () => Promise<void>;
   openConversationInTab: (conversation: Conversation) => void;
   closeTab: (tabId: string) => void;
@@ -65,46 +69,55 @@ export function useImprovedMultipleConversations(
     setLoadingState({ isLoading: false });
   }, []);
 
-  // Handle incoming realtime messages
+  // Handle incoming realtime messages with stable reference
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
     console.log('📨 Processing realtime message:', newMessage);
 
-    setTabs(prev => prev.map(tab => {
-      if (tab.conversation.id === newMessage.conversation_id) {
-        // Simple ID-based duplicate check
-        const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
-        
-        if (messageExists) {
-          console.log('🔄 Duplicate message detected, skipping:', newMessage.id);
-          return tab;
+    setTabs(prev => {
+      let wasUpdated = false;
+      const updatedTabs = prev.map(tab => {
+        if (tab.conversation.id === newMessage.conversation_id) {
+          // Simple ID-based duplicate check
+          const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
+          
+          if (messageExists) {
+            console.log('🔄 Duplicate message detected, skipping:', newMessage.id);
+            return tab;
+          }
+          
+          const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+          
+          console.log(`✅ Added message to tab ${tab.id}:`, newMessage.content.slice(0, 50));
+          wasUpdated = true;
+          
+          return {
+            ...tab,
+            messages: updatedMessages,
+            unreadCount: tab.id !== activeTabId && newMessage.role === 'assistant' 
+              ? tab.unreadCount + 1 
+              : tab.unreadCount
+          };
         }
-        
-        const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-        
-        console.log(`✅ Added message to tab ${tab.id}:`, newMessage.content.slice(0, 50));
-        
-        // Clear loading state for assistant messages
-        if (newMessage.role === 'assistant') {
-          console.log('🛑 Assistant message received, clearing loading state');
-          clearLoadingState();
-        }
-        
-        return {
-          ...tab,
-          messages: updatedMessages,
-          unreadCount: tab.id !== activeTabId && newMessage.role === 'assistant' 
-            ? tab.unreadCount + 1 
-            : tab.unreadCount
-        };
-      }
-      return tab;
-    }));
-  }, [activeTabId, clearLoadingState]);
+        return tab;
+      });
 
-  // Set up realtime subscription
-  useRealtimeSubscription({
+      // Clear loading state for assistant messages (outside of state update)
+      if (wasUpdated && newMessage.role === 'assistant') {
+        console.log('🛑 Assistant message received, clearing loading state');
+        // Use setTimeout to avoid state update during render
+        setTimeout(() => {
+          setLoadingState({ isLoading: false });
+        }, 0);
+      }
+
+      return updatedTabs;
+    });
+  }, []); // Remove dependencies to make it stable
+
+  // Set up realtime subscription with connection monitoring
+  const { connectionStatus, retryCount, reconnect, isConnected } = useRealtimeSubscription({
     userId,
     onMessage: handleRealtimeMessage,
     enabled: !!userId
@@ -346,6 +359,10 @@ export function useImprovedMultipleConversations(
     loading,
     loadingState,
     maxTabs: MAX_TABS,
+    connectionStatus,
+    retryCount,
+    isConnected,
+    reconnect,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -362,6 +379,10 @@ export function useImprovedMultipleConversations(
     conversations,
     loading,
     loadingState,
+    connectionStatus,
+    retryCount,
+    isConnected,
+    reconnect,
     loadConversations,
     openConversationInTab,
     closeTab,

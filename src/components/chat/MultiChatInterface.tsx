@@ -8,6 +8,7 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
+import { ConnectionStatus } from './ConnectionStatus';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -46,6 +47,10 @@ const MultiChatInterface = memo(() => {
     loading: conversationsLoading,
     loadingState,
     maxTabs,
+    connectionStatus,
+    retryCount,
+    isConnected,
+    reconnect,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -345,10 +350,18 @@ const MultiChatInterface = memo(() => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header with tabs */}
+        {/* Header with tabs and connection status */}
         <div className="border-b">
           <div className="p-4 pb-0">
-            <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-semibold">{t('chat.assistant')}</h1>
+              <ConnectionStatus
+                status={connectionStatus}
+                retryCount={retryCount}
+                onReconnect={reconnect}
+                className="text-xs"
+              />
+            </div>
           </div>
           
           <ImprovedConversationTabs
