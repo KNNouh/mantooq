@@ -17,15 +17,15 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className={`max-w-4xl max-h-[80vh] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+      <DialogContent className={`max-w-4xl max-h-[80vh] ${language === 'ar' ? 'text-right direction-rtl' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <DialogTitle className={`text-2xl font-bold mb-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
             {t('hero.learn_more')}
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="h-[60vh] pr-4">
-          <div className={`space-y-6 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+        <ScrollArea className={`h-[60vh] ${language === 'ar' ? 'pl-4' : 'pr-4'}`}>
+          <div className={`space-y-6 ${language === 'ar' ? 'text-right arabic-text' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
             
             {/* Platform Introduction */}
             <section>
@@ -52,16 +52,16 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h4 className="text-lg font-semibold mb-3 text-foreground">
                 {t('about.meaning_title')}
               </h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-start gap-2">
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.meaning.clarity')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.meaning.accuracy')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.meaning.reliability')}</span>
                 </li>
@@ -80,24 +80,24 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h3 className="text-xl font-bold mb-3 text-primary">
                 {t('about.features_title')}
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-start gap-2">
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.features.ui')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.features.search')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.features.coverage')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.features.updates')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.features.support')}</span>
                 </li>
@@ -109,20 +109,20 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h3 className="text-xl font-bold mb-3 text-primary">
                 {t('about.usage_title')}
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-start gap-2">
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.usage.meetings')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.usage.audit')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.usage.decision')}</span>
                 </li>
-                <li className="flex items-start gap-2">
+                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                   <span className="text-primary mt-1">•</span>
                   <span>{t('about.usage.compliance')}</span>
                 </li>
