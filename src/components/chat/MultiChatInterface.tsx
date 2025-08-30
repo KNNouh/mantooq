@@ -310,9 +310,9 @@ const MultiChatInterface = memo(() => {
               <ConversationSkeleton />
             ) : (
               conversations.map(conversation => (
-                 <div
+                <div
                   key={conversation.id}
-                  className={`group relative w-full conversation-item ${language === 'ar' ? 'text-right' : 'text-left'} rounded-lg border transition-all duration-200 ${
+                  className={`group relative w-full ${language === 'ar' ? 'text-right' : 'text-left'} rounded-lg border transition-all duration-200 ${
                     tabs.some(tab => tab.conversation.id === conversation.id)
                       ? 'bg-primary/10 border-primary shadow-sm' 
                       : 'hover:bg-muted hover:shadow-sm'
@@ -326,14 +326,14 @@ const MultiChatInterface = memo(() => {
                     className={`w-full p-4 touch-target flex flex-col gap-2 ${language === 'ar' ? 'text-right items-end' : 'text-left items-start'}`}
                     aria-label={`Open conversation: ${conversation.title}`}
                   >
-                    <div className={`font-medium text-base leading-tight w-full ${language === 'ar' ? 'pl-12 conversation-title arabic-text' : 'pr-12'}`}>
+                    <div className={`font-medium text-base leading-tight w-full ${language === 'ar' ? 'pl-12' : 'pr-12'}`}>
                       <div className="line-clamp-2">{conversation.title}</div>
                     </div>
-                    <div className={`text-sm text-muted-foreground ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                    <div className="text-sm text-muted-foreground">
                       {new Date(conversation.created_at).toLocaleDateString(language === 'ar' ? 'ar-QA' : 'en-US')}
                     </div>
                     {tabs.some(tab => tab.conversation.id === conversation.id) && (
-                      <div className={`text-sm text-primary font-medium ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                      <div className="text-sm text-primary font-medium">
                         {t('chat.open_in_tab')}
                       </div>
                     )}
@@ -384,14 +384,14 @@ const MultiChatInterface = memo(() => {
   );
 
   return (
-    <div className="flex h-screen bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex h-screen bg-background">
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
 
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <div className={`w-80 ${language === 'ar' ? 'border-l' : 'border-r'} flex flex-col bg-card sidebar-content`}>
+        <div className={`w-80 ${language === 'ar' ? 'border-l' : 'border-r'} flex flex-col bg-card`}>
           <SidebarContent />
         </div>
       )}
