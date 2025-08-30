@@ -323,23 +323,25 @@ const MultiChatInterface = memo(() => {
                       openConversationInTab(conversation);
                       if (isMobile) setSidebarOpen(false);
                     }}
-                    className="w-full p-3 text-left touch-target"
+                    className={`w-full p-4 touch-target flex flex-col gap-2 ${language === 'ar' ? 'text-right items-end' : 'text-left items-start'}`}
                     aria-label={`Open conversation: ${conversation.title}`}
                   >
-                    <div className="truncate font-medium pr-8 text-base">{conversation.title}</div>
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <div className={`font-medium text-base leading-tight w-full ${language === 'ar' ? 'pl-12' : 'pr-12'}`}>
+                      <div className="line-clamp-2">{conversation.title}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
                       {new Date(conversation.created_at).toLocaleDateString(language === 'ar' ? 'ar-QA' : 'en-US')}
                     </div>
                     {tabs.some(tab => tab.conversation.id === conversation.id) && (
-                      <div className="text-sm text-primary font-medium mt-1">
+                      <div className="text-sm text-primary font-medium">
                         {t('chat.open_in_tab')}
                       </div>
                     )}
                   </button>
                   <Button
                     variant="ghost"
-                    size="icon-sm"
-                    className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-all duration-200 touch-target hover:bg-destructive hover:text-destructive-foreground"
+                    size="icon"
+                    className={`absolute ${language === 'ar' ? 'left-2' : 'right-2'} top-3 opacity-70 group-hover:opacity-100 transition-all duration-200 touch-target hover:bg-destructive hover:text-destructive-foreground z-10`}
                     onClick={(e) => handleDeleteClick(conversation, e)}
                     aria-label={`Delete conversation: ${conversation.title}`}
                   >
