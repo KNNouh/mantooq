@@ -297,4 +297,33 @@
     font-variant-ligatures: common-ligatures contextual;
     text-rendering: optimizeLegibility;
   }
+
+  /* Arabic list styling with proper RTL bullet positioning */
+  .arabic-list {
+    list-style: none;
+    padding-right: 1rem;
+    padding-left: 0;
+  }
+
+  .arabic-list-item {
+    position: relative;
+    padding-right: 1.5rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  .arabic-list-item::before {
+    content: "•";
+    color: hsl(var(--primary));
+    position: absolute;
+    right: 0;
+    top: 0.125rem;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  /* English lists keep normal behavior */
+  .arabic-list:not(.arabic-list) li::before {
+    display: none;
+  }
 }

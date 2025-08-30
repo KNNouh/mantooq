@@ -52,18 +52,15 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h4 className="text-lg font-semibold mb-3 text-foreground">
                 {t('about.meaning_title')}
               </h4>
-              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.meaning.clarity')}</span>
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'arabic-list' : ''}`} style={language === 'ar' ? { direction: 'rtl', textAlign: 'right' } : {}}>
+                <li className="arabic-list-item">
+                  {t('about.meaning.clarity')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.meaning.accuracy')}</span>
+                <li className="arabic-list-item">
+                  {t('about.meaning.accuracy')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.meaning.reliability')}</span>
+                <li className="arabic-list-item">
+                  {t('about.meaning.reliability')}
                 </li>
               </ul>
             </section>
@@ -80,26 +77,21 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h3 className="text-xl font-bold mb-3 text-primary">
                 {t('about.features_title')}
               </h3>
-              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.features.ui')}</span>
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'arabic-list' : ''}`} style={language === 'ar' ? { direction: 'rtl', textAlign: 'right' } : {}}>
+                <li className="arabic-list-item">
+                  {t('about.features.ui')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.features.search')}</span>
+                <li className="arabic-list-item">
+                  {t('about.features.search')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.features.coverage')}</span>
+                <li className="arabic-list-item">
+                  {t('about.features.coverage')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.features.updates')}</span>
+                <li className="arabic-list-item">
+                  {t('about.features.updates')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.features.support')}</span>
+                <li className="arabic-list-item">
+                  {t('about.features.support')}
                 </li>
               </ul>
             </section>
@@ -109,22 +101,18 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ children }) => {
               <h3 className="text-xl font-bold mb-3 text-primary">
                 {t('about.usage_title')}
               </h3>
-              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'list-rtl' : ''}`}>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.usage.meetings')}</span>
+              <ul className={`space-y-2 text-muted-foreground ${language === 'ar' ? 'arabic-list' : ''}`} style={language === 'ar' ? { direction: 'rtl', textAlign: 'right' } : {}}>
+                <li className="arabic-list-item">
+                  {t('about.usage.meetings')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.usage.audit')}</span>
+                <li className="arabic-list-item">
+                  {t('about.usage.audit')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.usage.decision')}</span>
+                <li className="arabic-list-item">
+                  {t('about.usage.decision')}
                 </li>
-                <li className={`flex items-start gap-2 ${language === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
-                  <span className="text-primary mt-1">•</span>
-                  <span>{t('about.usage.compliance')}</span>
+                <li className="arabic-list-item">
+                  {t('about.usage.compliance')}
                 </li>
               </ul>
             </section>
