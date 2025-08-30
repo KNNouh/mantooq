@@ -2,52 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Design System - WCAG 2.2 AA Compliant Colors, Accessibility & Mobile-First Sizing */
 
 @layer base {
   :root {
-    /* Mantooq Authentic Arabic Brand Colors */
-    --background: 33 45% 95%;
-    --foreground: 0 0% 15%;
+    /* Mantooq Authentic Arabic Brand Colors - Enhanced Contrast */
+    --background: 33 45% 98%;
+    --foreground: 0 0% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 15%;
+    --card-foreground: 0 0% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
+    --popover-foreground: 0 0% 12%;
 
-    /* Sapphire Blue as Primary (أزرق ياقوتي) */
-    --primary: 216 100% 36%;
-    --primary-foreground: 0 0% 98%;
+    /* Sapphire Blue as Primary - Enhanced for WCAG AA */
+    --primary: 216 100% 32%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 216 100% 28%;
+    --primary-active: 216 100% 24%;
 
-    /* Light Sand as Secondary (رملي فاتح) */
-    --secondary: 33 45% 82%;
-    --secondary-foreground: 0 0% 15%;
+    /* Light Sand as Secondary - Better Contrast */
+    --secondary: 33 45% 75%;
+    --secondary-foreground: 0 0% 12%;
+    --secondary-hover: 33 45% 70%;
 
-    --muted: 33 45% 88%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 33 45% 92%;
+    --muted-foreground: 0 0% 25%;
 
-    /* Gold as Accent (ذهبي) */
-    --accent: 40 54% 46%;
-    --accent-foreground: 0 0% 98%;
+    /* Gold as Accent - Enhanced Readability */
+    --accent: 40 65% 35%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 40 65% 30%;
 
-    /* Burgundy for Destructive (عنابي) */
-    --destructive: 342 70% 31%;
-    --destructive-foreground: 0 0% 98%;
+    /* Burgundy for Destructive - Better Contrast */
+    --destructive: 342 75% 28%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-hover: 342 75% 24%;
 
     --border: 33 25% 85%;
-    --input: 33 25% 85%;
-    --ring: 216 100% 36%;
+    --input: 33 25% 88%;
+    --ring: 216 100% 32%;
+    --ring-offset: 0 0% 100%;
+
+    /* Focus Ring - WCAG Compliant */
+    --focus-ring: 216 100% 32%;
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
 
     --radius: 0.75rem;
 
-    /* Mantooq Authentic Gradients */
-    --gradient-mantooq: linear-gradient(135deg, hsl(216, 100%, 36%), hsl(40, 54%, 46%));
-    --gradient-burgundy: linear-gradient(135deg, hsl(342, 70%, 31%), hsl(342, 70%, 45%));
-    --gradient-gold: linear-gradient(135deg, hsl(40, 54%, 46%), hsl(40, 60%, 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(33, 45%, 95%), hsl(33, 35%, 92%));
+    /* Touch Target Sizes - WCAG 2.2 AA Compliance */
+    --touch-target-min: 44px;
+    --touch-target-comfortable: 48px;
+    --touch-target-large: 56px;
+
+    /* Spacing System - Mobile-First */
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 0.75rem;   /* 12px */
+    --spacing-lg: 1rem;      /* 16px */
+    --spacing-xl: 1.5rem;    /* 24px */
+    --spacing-2xl: 2rem;     /* 32px */
+    --spacing-3xl: 3rem;     /* 48px */
+
+    /* Typography Scale - Mobile Optimized */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
+    --text-4xl: 2.25rem;     /* 36px */
+
+    /* Mantooq Enhanced Gradients */
+    --gradient-mantooq: linear-gradient(135deg, hsl(216, 100%, 32%), hsl(40, 65%, 35%));
+    --gradient-burgundy: linear-gradient(135deg, hsl(342, 75%, 28%), hsl(342, 75%, 40%));
+    --gradient-gold: linear-gradient(135deg, hsl(40, 65%, 35%), hsl(40, 70%, 50%));
+    --gradient-subtle: linear-gradient(180deg, hsl(33, 45%, 98%), hsl(33, 35%, 95%));
+
+    /* Interactive State Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
+    --shadow-focus: 0 0 0 var(--focus-ring-offset) hsl(var(--ring-offset)), 0 0 0 calc(var(--focus-ring-width) + var(--focus-ring-offset)) hsl(var(--focus-ring));
 
     /* Sidebar with Arabic theme */
     --sidebar-background: 33 45% 96%;
@@ -74,34 +113,42 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark theme with Mantooq blue accents */
-    --background: 216 25% 8%;
-    --foreground: 0 0% 95%;
+    /* Dark theme with Mantooq blue accents - WCAG AA Compliant */
+    --background: 216 25% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 216 25% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 216 25% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 216 25% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 216 25% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 216 81% 55%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 216 81% 65%;
+    --primary-foreground: 0 0% 8%;
+    --primary-hover: 216 81% 70%;
+    --primary-active: 216 81% 60%;
 
-    --secondary: 216 20% 15%;
+    --secondary: 216 20% 18%;
     --secondary-foreground: 0 0% 95%;
+    --secondary-hover: 216 20% 22%;
 
-    --muted: 216 20% 15%;
-    --muted-foreground: 216 15% 65%;
+    --muted: 216 20% 12%;
+    --muted-foreground: 216 15% 75%;
 
-    --accent: 216 25% 18%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 216 25% 25%;
+    --accent-foreground: 0 0% 98%;
+    --accent-hover: 216 25% 30%;
 
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 98%;
+    --destructive-hover: 0 75% 55%;
 
     --border: 216 20% 18%;
-    --input: 216 20% 18%;
-    --ring: 216 81% 55%;
+    --input: 216 20% 15%;
+    --ring: 216 81% 65%;
+    --ring-offset: 216 25% 6%;
+
+    --focus-ring: 216 81% 65%;
 
     --sidebar-background: 216 25% 12%;
     --sidebar-foreground: 0 0% 90%;
@@ -121,6 +168,39 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Skip Link for Accessibility */
+  .skip-link {
+    @apply absolute -top-10 left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md;
+    @apply focus:top-4 focus:z-50 transition-all duration-200;
+  }
+
+  /* Focus Management */
+  *:focus {
+    outline: none;
+  }
+
+  *:focus-visible {
+    box-shadow: var(--shadow-focus);
+    outline: none;
+  }
+
+  /* Touch Target Helpers */
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+
+  .touch-target-comfortable {
+    min-height: var(--touch-target-comfortable);
+    min-width: var(--touch-target-comfortable);
+  }
+
+  .touch-target-large {
+    min-height: var(--touch-target-large);
+    min-width: var(--touch-target-large);
   }
   
   /* RTL Support for Arabic */

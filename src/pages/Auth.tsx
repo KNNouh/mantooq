@@ -9,45 +9,54 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <a href="#auth-form" className="skip-link">
+        Skip to authentication form
+      </a>
+      
+      <div className="w-full max-w-sm sm:max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+            className="absolute top-4 left-4 text-muted-foreground hover:text-foreground touch-target"
+            size="sm"
+            aria-label="العودة للرئيسية"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            العودة للرئيسية
+            <span className="hidden sm:inline">العودة للرئيسية</span>
+            <span className="sm:hidden">العودة</span>
           </Button>
           
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-qatar rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-center space-x-3 mb-4 sm:mb-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-qatar rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="text-right">
-              <h1 className="text-xl font-bold bg-gradient-qatar bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-qatar bg-clip-text text-transparent">
                 Qatar AI Assistant
               </h1>
               <p className="text-xs text-muted-foreground">مساعد قطر الذكي</p>
             </div>
           </div>
           
-          <h2 className="text-2xl font-bold mb-2">مرحباً بك</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">مرحباً بك</h2>
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
             سجل دخولك أو أنشئ حساباً جديداً للبدء
           </p>
         </div>
 
         {/* Auth Form */}
-        <AuthForm />
+        <div id="auth-form">
+          <AuthForm />
+        </div>
 
         {/* Cultural Pattern */}
-        <div className="flex justify-center items-center space-x-4 text-cultural-gold mt-8">
+        <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-cultural-gold mt-6 sm:mt-8" aria-hidden="true">
           <div className="w-1 h-1 bg-cultural-gold rounded-full"></div>
-          <div className="w-2 h-2 bg-cultural-gold rounded-full"></div>
-          <div className="text-lg">✦</div>
-          <div className="w-2 h-2 bg-cultural-gold rounded-full"></div>
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cultural-gold rounded-full"></div>
+          <div className="text-base sm:text-lg">✦</div>
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cultural-gold rounded-full"></div>
           <div className="w-1 h-1 bg-cultural-gold rounded-full"></div>
         </div>
       </div>
