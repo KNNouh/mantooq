@@ -25,8 +25,10 @@ export function useRealtimeSubscription({
   const channelRef = useRef<any>(null);
   const messageHandlerRef = useRef(onMessage);
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [retryCount, setRetryCount] = useState(0);
+  const lastMessageId = useRef<string | null>(null);
 
   // Update message handler ref when it changes
   messageHandlerRef.current = onMessage;
@@ -58,6 +60,14 @@ export function useRealtimeSubscription({
           console.log('📨 New message received via realtime:', payload);
           const newMessage = payload.new as Message;
           
+          // Prevent duplicate processing
+          if (newMessage.id === lastMessageId.current) {
+            console.log('🚫 Skipping duplicate message:', newMessage.id);
+            return;
+          }
+          
+          lastMessageId.current = newMessage.id;
+          
           // Immediate callback without delay to prevent message loss
           try {
             messageHandlerRef.current(newMessage);
@@ -83,17 +93,21 @@ export function useRealtimeSubscription({
           console.error(`❌ Real-time subscription ${status.toLowerCase()}`);
           setConnectionStatus('error');
           
-          // Retry with exponential backoff (max 5 attempts)
-          if (attempt < 4) {
-            const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+          // Retry with exponential backoff (max 3 attempts)
+          if (attempt < 2) {
+            const delay = Math.min(2000 * Math.pow(2, attempt), 8000);
             console.log(`🔄 Retrying connection in ${delay}ms...`);
             
             retryTimeoutRef.current = setTimeout(() => {
               attemptConnection(userId, attempt + 1);
             }, delay);
           } else {
-            console.error('❌ Max retry attempts reached');
+            console.error('❌ Max retry attempts reached, will retry every 30s');
             setConnectionStatus('error');
+            // Continue trying every 30 seconds in background
+            reconnectTimeoutRef.current = setTimeout(() => {
+              attemptConnection(userId, 0);
+            }, 30000);
           }
         } else if (status === 'CLOSED') {
           console.log('🔒 Real-time subscription closed');
@@ -132,6 +146,10 @@ export function useRealtimeSubscription({
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = undefined;
       }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = undefined;
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -146,6 +164,10 @@ export function useRealtimeSubscription({
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = undefined;
     }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
+    }
     if (channelRef.current) {
       console.log('🧹 Manual cleanup of real-time subscription');
       supabase.removeChannel(channelRef.current);
@@ -153,6 +175,7 @@ export function useRealtimeSubscription({
     }
     setConnectionStatus('disconnected');
     setRetryCount(0);
+    lastMessageId.current = null;
   }, []);
 
   // Manual reconnect function

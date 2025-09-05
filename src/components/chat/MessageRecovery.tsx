@@ -32,14 +32,13 @@ export function MessageRecovery({
   const [isRecovering, setIsRecovering] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
 
-  // Auto-show recovery option after 10 seconds if no new messages
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowRecovery(true);
-    }, 10000);
+    }, 15000); // Show after 15 seconds if connection issues persist
 
     return () => clearTimeout(timer);
-  }, [conversationId]);
+  }, [conversationId]); // Reset timer when conversation changes
 
   const recoverMessages = useCallback(async () => {
     if (!conversationId || !userId) return;
@@ -82,25 +81,25 @@ export function MessageRecovery({
   if (!showRecovery) return null;
 
   return (
-    <div className={`flex items-center justify-center p-4 ${className}`}>
-      <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <span className="text-sm text-amber-800 dark:text-amber-200">
-          رسالة محتملة مفقودة؟
+    <div className={`flex items-center justify-center p-3 ${className}`}>
+      <div className="flex items-center gap-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+        <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+        <span className="text-sm text-yellow-800 dark:text-yellow-200">
+          ⚠️ Connection issues detected. Messages might be missing.
         </span>
         <Button
           onClick={recoverMessages}
           disabled={isRecovering}
           size="sm"
           variant="outline"
-          className="ml-2"
+          className="border-yellow-300 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-600 dark:text-yellow-200 dark:hover:bg-yellow-900/20"
         >
           {isRecovering ? (
             <RefreshCw className="h-3 w-3 animate-spin mr-1" />
           ) : (
             <RefreshCw className="h-3 w-3 mr-1" />
           )}
-          استرداد
+          Recover Messages
         </Button>
       </div>
     </div>

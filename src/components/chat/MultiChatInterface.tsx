@@ -6,7 +6,6 @@ import { MessageCircle, Settings, LogOut, Trash2, Send, Menu, X } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
-import { useMessageSync } from '@/hooks/useMessageSync';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
 import { ConnectionStatus } from './ConnectionStatus';
@@ -68,16 +67,6 @@ const MultiChatInterface = memo(() => {
     setLoadingState,
     clearLoadingState
   } = useImprovedMultipleConversations(user?.id || null);
-
-  // Backup message synchronization to prevent message loss
-  useMessageSync({
-    userId: user?.id || null,
-    onMessage: (message) => {
-      console.log('📥 Backup sync found message:', message.id);
-      // The message will be handled by real-time subscription or added directly to tabs
-    },
-    enabled: !!user?.id
-  });
 
   // Get active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -166,23 +155,19 @@ const MultiChatInterface = memo(() => {
     }
   }, [user, loadConversations, clearLoadingState]);
 
-  // Optimized message sending with improved error handling
+  // Optimized message sending with improved error handling and immediate feedback
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || loadingState.isLoading || !user) return;
     
     const message = inputMessage.trim();
-    setInputMessage('');
-
+    
     try {
       let conversationId = activeTab?.conversation.id;
       
-      // Set loading state
-      setLoadingState({ 
-        isLoading: true, 
-        conversationId: conversationId || 'new'
-      });
-
+      // Clear input immediately for better UX
+      setInputMessage('');
+      
       // Create new conversation if needed
       if (!conversationId) {
         try {
@@ -219,69 +204,77 @@ const MultiChatInterface = memo(() => {
             });
           }
           
-          clearLoadingState();
+          setInputMessage(message); // Restore input on error
           return;
         }
       }
 
-      // Update loading state with actual conversation ID
+      // Set loading state
       setLoadingState({ 
         isLoading: true, 
         conversationId 
       });
 
-      // Add user message
+      // Add user message (this will update UI immediately)
       await addMessage(conversationId, 'user', message);
 
       // Trigger webhook for AI response with timeout handling
       try {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 30000)
+        );
+        
+        const webhookPromise = supabase.functions.invoke('trigger-chat-response', {
+          body: {
+            message,
+            conversationId
+          }
+        });
+        
         const { data: webhookResponse, error } = await Promise.race([
-          supabase.functions.invoke('trigger-chat-response', {
-            body: {
-              message,
-              conversationId
-            }
-          }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout')), 30000)
-          )
+          webhookPromise,
+          timeoutPromise
         ]) as any;
 
         if (error) {
-          console.error('Error triggering chat response:', error);
-          await addMessage(conversationId!, 'assistant', 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.');
-          clearLoadingState();
-          toast({
-            title: "خطأ في الإرسال",
-            description: "حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.",
-            variant: "destructive",
-          });
-        } else {
-          // Update loading state with log ID if available
-          if (webhookResponse?.logId) {
-            setLoadingState({ 
-              isLoading: true, 
-              conversationId,
-              logId: webhookResponse.logId 
-            });
-          }
+          throw new Error(error.message || 'Failed to trigger AI response');
         }
-      } catch (timeoutError) {
-        console.error('Request timeout or network error:', timeoutError);
+
+        // Update loading state with log ID if available
+        if (webhookResponse?.logId) {
+          setLoadingState({ 
+            isLoading: true, 
+            conversationId,
+            logId: webhookResponse.logId 
+          });
+        }
+
+        console.log('✅ AI response triggered successfully');
+        
+      } catch (webhookError: any) {
+        console.error('Error in webhook request:', webhookError);
+        
+        let errorMessage = 'حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.';
+        
+        if (webhookError.message === 'Request timeout') {
+          errorMessage = 'انتهت مهلة معالجة رسالتك. قد تكون الاستجابة في الطريق.';
+        }
+        
+        // Clear loading state on error
         clearLoadingState();
+        
         toast({
-          title: "انتهت مهلة الطلب",
-          description: "انتهت مهلة معالجة رسالتك. يرجى المحاولة مرة أخرى.",
+          title: "خطأ في الإرسال",
+          description: errorMessage,
           variant: "destructive",
         });
       }
 
     } catch (error) {
       console.error('Error sending message:', error);
-      if (activeTab?.conversation.id) {
-        await addMessage(activeTab.conversation.id, 'assistant', 'حدث خطأ أثناء معالجة رسالتك.');
-      }
       clearLoadingState();
+      setInputMessage(message); // Restore input on error
+      
       toast({
         title: "خطأ",
         description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
@@ -538,8 +531,8 @@ const MultiChatInterface = memo(() => {
                   />
                 )}
                 
-                {/* Message Recovery Component */}
-                {activeTab && activeTab.conversation.id && user && !loadingState.isLoading && (
+                {/* Message Recovery Component - only show when connection issues detected */}
+                {activeTab && activeTab.conversation.id && user && !isConnected && (
                   <MessageRecovery
                     conversationId={activeTab.conversation.id}
                     userId={user.id}

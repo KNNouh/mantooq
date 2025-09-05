@@ -224,6 +224,32 @@ export function useImprovedMultipleConversations(
     if (!userId) return;
 
     try {
+      console.log('💾 Adding message to database...');
+      
+      // Immediately add user message to local state for instant UI update
+      if (role === 'user') {
+        const tempMessage = {
+          id: `temp-${Date.now()}`, // Temporary ID
+          conversation_id: conversationId,
+          content,
+          role,
+          created_at: new Date().toISOString(),
+          user_id: userId
+        };
+        
+        setTabs(prevTabs => 
+          prevTabs.map(tab => {
+            if (tab.conversation.id === conversationId) {
+              return {
+                ...tab,
+                messages: [...tab.messages, tempMessage]
+              };
+            }
+            return tab;
+          })
+        );
+      }
+      
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -236,28 +262,43 @@ export function useImprovedMultipleConversations(
         .single();
 
       if (error) throw error;
-      
-      const newMessage = data as Message;
-      console.log('✅ Message added to database:', newMessage.id);
 
-      // For user messages, update local state immediately for better UX
-      if (role === 'user') {
-        setTabs(prev => prev.map(tab => {
-          if (tab.conversation.id === conversationId) {
-            const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
-            if (!messageExists) {
-              const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-              );
-              return { ...tab, messages: updatedMessages };
+      // Replace temporary message with real one for user messages
+      if (role === 'user' && data) {
+        setTabs(prevTabs => 
+          prevTabs.map(tab => {
+            if (tab.conversation.id === conversationId) {
+              return {
+                ...tab,
+                messages: tab.messages.map(msg => 
+                  msg.id.startsWith('temp-') ? data : msg
+                )
+              };
             }
-          }
-          return tab;
-        }));
+            return tab;
+          })
+        );
+      }
+
+      console.log('✅ Message added to database successfully');
+    } catch (error) {
+      console.error('❌ Failed to add message:', error);
+      
+      // Remove temporary message on error
+      if (role === 'user') {
+        setTabs(prevTabs => 
+          prevTabs.map(tab => {
+            if (tab.conversation.id === conversationId) {
+              return {
+                ...tab,
+                messages: tab.messages.filter(msg => !msg.id.startsWith('temp-'))
+              };
+            }
+            return tab;
+          })
+        );
       }
       
-    } catch (error) {
-      console.error('Error adding message:', error);
       throw error;
     }
   }, [userId]);
