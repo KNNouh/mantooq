@@ -31,7 +31,6 @@ export function useRealtimeSubscription({
   // Update message handler ref when it changes
   messageHandlerRef.current = onMessage;
 
-  // Stable retry function with exponential backoff
   const attemptConnection = useCallback((userId: string, attempt = 0) => {
     if (channelRef.current) {
       console.log('🧹 Cleaning up existing subscription before retry');
@@ -58,8 +57,13 @@ export function useRealtimeSubscription({
         (payload) => {
           console.log('📨 New message received via realtime:', payload);
           const newMessage = payload.new as Message;
-          // Use ref to avoid dependency issues
-          messageHandlerRef.current(newMessage);
+          
+          // Immediate callback without delay to prevent message loss
+          try {
+            messageHandlerRef.current(newMessage);
+          } catch (error) {
+            console.error('Error handling realtime message:', error);
+          }
         }
       )
       .subscribe((status) => {

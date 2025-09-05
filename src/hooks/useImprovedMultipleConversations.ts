@@ -69,7 +69,7 @@ export function useImprovedMultipleConversations(
     setLoadingState({ isLoading: false });
   }, []);
 
-  // Handle incoming realtime messages with stable reference
+  // Handle incoming realtime messages with proper dependency management
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
     console.log('📨 Processing realtime message:', newMessage);
 
@@ -103,18 +103,15 @@ export function useImprovedMultipleConversations(
         return tab;
       });
 
-      // Clear loading state for assistant messages (outside of state update)
-      if (wasUpdated && newMessage.role === 'assistant') {
-        console.log('🛑 Assistant message received, clearing loading state');
-        // Use setTimeout to avoid state update during render
-        setTimeout(() => {
-          setLoadingState({ isLoading: false });
-        }, 0);
-      }
-
       return updatedTabs;
     });
-  }, []); // Remove dependencies to make it stable
+
+    // Clear loading state for assistant messages immediately after state update
+    if (newMessage.role === 'assistant') {
+      console.log('🛑 Assistant message received, clearing loading state');
+      setLoadingState({ isLoading: false });
+    }
+  }, [activeTabId]); // Include activeTabId dependency
 
   // Set up realtime subscription with connection monitoring
   const { connectionStatus, retryCount, reconnect, isConnected } = useRealtimeSubscription({
@@ -240,8 +237,24 @@ export function useImprovedMultipleConversations(
 
       if (error) throw error;
       
-      // Note: We don't update local state here as it will be handled by realtime subscription
-      console.log('✅ Message added to database:', data.id);
+      const newMessage = data as Message;
+      console.log('✅ Message added to database:', newMessage.id);
+
+      // For user messages, update local state immediately for better UX
+      if (role === 'user') {
+        setTabs(prev => prev.map(tab => {
+          if (tab.conversation.id === conversationId) {
+            const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
+            if (!messageExists) {
+              const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+              return { ...tab, messages: updatedMessages };
+            }
+          }
+          return tab;
+        }));
+      }
       
     } catch (error) {
       console.error('Error adding message:', error);

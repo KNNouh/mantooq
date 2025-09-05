@@ -6,9 +6,11 @@ import { MessageCircle, Settings, LogOut, Trash2, Send, Menu, X } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
+import { useMessageSync } from '@/hooks/useMessageSync';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
 import { ConnectionStatus } from './ConnectionStatus';
+import { MessageRecovery } from './MessageRecovery';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -67,8 +69,33 @@ const MultiChatInterface = memo(() => {
     clearLoadingState
   } = useImprovedMultipleConversations(user?.id || null);
 
+  // Backup message synchronization to prevent message loss
+  useMessageSync({
+    userId: user?.id || null,
+    onMessage: (message) => {
+      console.log('📥 Backup sync found message:', message.id);
+      // The message will be handled by real-time subscription or added directly to tabs
+    },
+    enabled: !!user?.id
+  });
+
   // Get active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
+
+  // Handle recovered messages
+  const handleMessagesRecovered = useCallback((messages: Message[]) => {
+    if (!activeTab) return;
+    
+    // Use the openConversationInTab function to refresh the tab with recovered messages
+    messages.forEach(message => {
+      console.log('🔄 Processing recovered message:', message.id);
+    });
+    
+    // Reload the active conversation to get all messages
+    if (activeTab.conversation.id) {
+      openConversationInTab(activeTab.conversation);
+    }
+  }, [activeTab, openConversationInTab]);
 
   // Retry function for failed requests
   const handleRetry = useCallback(() => {
@@ -206,32 +233,47 @@ const MultiChatInterface = memo(() => {
       // Add user message
       await addMessage(conversationId, 'user', message);
 
-      // Trigger webhook for AI response
-      const { data: webhookResponse, error } = await supabase.functions.invoke('trigger-chat-response', {
-        body: {
-          message,
-          conversationId
-        }
-      });
+      // Trigger webhook for AI response with timeout handling
+      try {
+        const { data: webhookResponse, error } = await Promise.race([
+          supabase.functions.invoke('trigger-chat-response', {
+            body: {
+              message,
+              conversationId
+            }
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 30000)
+          )
+        ]) as any;
 
-      if (error) {
-        console.error('Error triggering chat response:', error);
-        await addMessage(conversationId!, 'assistant', 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.');
+        if (error) {
+          console.error('Error triggering chat response:', error);
+          await addMessage(conversationId!, 'assistant', 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.');
+          clearLoadingState();
+          toast({
+            title: "خطأ في الإرسال",
+            description: "حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.",
+            variant: "destructive",
+          });
+        } else {
+          // Update loading state with log ID if available
+          if (webhookResponse?.logId) {
+            setLoadingState({ 
+              isLoading: true, 
+              conversationId,
+              logId: webhookResponse.logId 
+            });
+          }
+        }
+      } catch (timeoutError) {
+        console.error('Request timeout or network error:', timeoutError);
         clearLoadingState();
         toast({
-          title: "خطأ في الإرسال",
-          description: "حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.",
+          title: "انتهت مهلة الطلب",
+          description: "انتهت مهلة معالجة رسالتك. يرجى المحاولة مرة أخرى.",
           variant: "destructive",
         });
-      } else {
-        // Update loading state with log ID if available
-        if (webhookResponse?.logId) {
-          setLoadingState({ 
-            isLoading: true, 
-            conversationId,
-            logId: webhookResponse.logId 
-          });
-        }
       }
 
     } catch (error) {
@@ -495,6 +537,17 @@ const MultiChatInterface = memo(() => {
                     onTimeout={handleTimeout}
                   />
                 )}
+                
+                {/* Message Recovery Component */}
+                {activeTab && activeTab.conversation.id && user && !loadingState.isLoading && (
+                  <MessageRecovery
+                    conversationId={activeTab.conversation.id}
+                    userId={user.id}
+                    lastMessageId={activeTab.messages[activeTab.messages.length - 1]?.id}
+                    onMessagesRecovered={handleMessagesRecovered}
+                  />
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
