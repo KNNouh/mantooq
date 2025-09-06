@@ -90,8 +90,7 @@ export function EnhancedConnectionStatus({
   };
 
   const shouldShowActions = connectionHealth.status === 'error' || 
-                           connectionHealth.status === 'disconnected' ||
-                           connectionHealth.quality < 50;
+                           connectionHealth.status === 'disconnected';
 
   const timeSinceLastHeartbeat = connectionHealth.lastHeartbeat > 0 ? 
     Math.floor((Date.now() - connectionHealth.lastHeartbeat) / 1000) : 0;
@@ -105,11 +104,11 @@ export function EnhancedConnectionStatus({
         </span>
       </div>
 
-      {/* Detailed info for poor connections */}
-      {(connectionHealth.status === 'degraded' || connectionHealth.quality < 70) && (
+      {/* Detailed info for degraded connections only */}
+      {connectionHealth.status === 'degraded' && (
         <div className="text-xs text-muted-foreground">
           {connectionHealth.latency > 0 && `${connectionHealth.latency}ms`}
-          {timeSinceLastHeartbeat > 30 && ` • ${timeSinceLastHeartbeat}s ago`}
+          {timeSinceLastHeartbeat > 60 && ` • ${timeSinceLastHeartbeat}s ago`}
         </div>
       )}
 
@@ -126,7 +125,7 @@ export function EnhancedConnectionStatus({
             Reconnect
           </Button>
           
-          {onForceRefresh && connectionHealth.status === 'error' && (
+          {onForceRefresh && (connectionHealth.status === 'error' || connectionHealth.status === 'disconnected') && (
             <Button
               onClick={onForceRefresh}
               size="sm"

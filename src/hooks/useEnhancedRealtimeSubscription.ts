@@ -53,7 +53,7 @@ export function useEnhancedRealtimeSubscription({
   // Update message handler ref when it changes
   messageHandlerRef.current = onMessage;
 
-  // Heartbeat monitoring
+  // Heartbeat monitoring - simplified without aggressive reconnection
   const startHeartbeat = useCallback(() => {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -65,32 +65,29 @@ export function useEnhancedRealtimeSubscription({
       
       if (!channel) return;
 
-      // Send heartbeat
-      const heartbeatStart = now;
-      
-      // Simulate heartbeat by checking channel state
+      // Check channel state
       const channelState = channel.state;
-      const heartbeatEnd = Date.now();
-      const latency = heartbeatEnd - heartbeatStart;
+      const latency = 50; // Simple fixed latency for now
 
       setConnectionHealth(prev => {
         const timeSinceLastMessage = now - prev.lastHeartbeat;
         let quality = 100;
         
-        // Reduce quality based on latency and time since last activity
-        if (latency > 1000) quality -= 30;
-        else if (latency > 500) quality -= 15;
+        // Reduce quality based on time since last activity only
+        if (timeSinceLastMessage > 60000) quality = 60; // No activity for 1min
+        else if (timeSinceLastMessage > 30000) quality = 80; // No activity for 30s
         
-        if (timeSinceLastMessage > 30000) quality -= 20; // No activity for 30s
-        if (timeSinceLastMessage > 60000) quality -= 40; // No activity for 1min
-        
-        // Connection state assessment
+        // Connection state assessment based on actual channel state
         let status: ConnectionStatus = prev.status;
-        if (channelState === 'joined' && quality > 70) status = 'connected';
-        else if (channelState === 'joined' && quality > 40) status = 'degraded';
+        if (channelState === 'joined') status = 'connected';
         else if (channelState === 'joining') status = 'connecting';
         else if (channelState === 'leaving' || channelState === 'closed') status = 'disconnected';
         else status = 'error';
+
+        // Only update if there's a meaningful change
+        if (status === prev.status && Math.abs(quality - prev.quality) < 10) {
+          return prev;
+        }
 
         return {
           ...prev,
@@ -100,25 +97,14 @@ export function useEnhancedRealtimeSubscription({
           lastHeartbeat: now
         };
       });
+    }, 30000); // Every 30 seconds - less frequent
+  }, []);
 
-      // Trigger reconnection if quality is too low
-      if (connectionHealth.quality < 30 && connectionHealth.status === 'connected') {
-        console.log('⚠️ Connection quality degraded, triggering reconnection');
-        attemptConnection(userId!, reconnectAttempts.current);
-      }
-    }, 10000); // Every 10 seconds
-  }, [userId, connectionHealth.quality, connectionHealth.status]);
-
-  // Backup polling for message recovery
+  // Backup polling for message recovery - only when connection fails
   const startBackupPolling = useCallback(() => {
     if (!userId || pollingIntervalRef.current) return;
 
     pollingIntervalRef.current = setInterval(async () => {
-      // Only poll if real-time connection is poor or disconnected
-      if (connectionHealth.status === 'connected' && connectionHealth.quality > 50) {
-        return;
-      }
-
       try {
         const now = Date.now();
         const pollSince = Math.max(lastPollTime.current, now - 60000); // Last minute
@@ -149,8 +135,8 @@ export function useEnhancedRealtimeSubscription({
       } catch (error) {
         console.error('Backup polling failed:', error);
       }
-    }, 15000); // Every 15 seconds
-  }, [userId, connectionHealth.status, connectionHealth.quality]);
+    }, 30000); // Every 30 seconds - less aggressive
+  }, [userId]);
 
   const stopBackupPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
@@ -229,8 +215,8 @@ export function useEnhancedRealtimeSubscription({
           // Start heartbeat monitoring
           startHeartbeat();
           
-          // Start backup polling for redundancy
-          startBackupPolling();
+          // Stop backup polling since real-time is working
+          stopBackupPolling();
           
           // Clear any pending retry
           if (retryTimeoutRef.current) {
@@ -246,9 +232,9 @@ export function useEnhancedRealtimeSubscription({
             consecutiveFailures: prev.consecutiveFailures + 1
           }));
           
-          // Enhanced retry logic with exponential backoff
-          if (attempt < 5) { // Increased max attempts
-            const delay = Math.min(1000 * Math.pow(1.5, attempt), 15000); // More aggressive retry
+          // Simplified retry logic with linear backoff
+          if (attempt < 3) { // Reduced max attempts
+            const delay = 2000 + (attempt * 1000); // Linear backoff: 2s, 3s, 4s
             console.log(`🔄 Retrying enhanced connection in ${delay}ms...`);
             
             retryTimeoutRef.current = setTimeout(() => {
@@ -257,7 +243,7 @@ export function useEnhancedRealtimeSubscription({
           } else {
             console.error('❌ Max retry attempts reached, switching to backup polling mode');
             setConnectionHealth(prev => ({ ...prev, status: 'error' }));
-            // Continue with backup polling only
+            // Start backup polling only as fallback
             startBackupPolling();
           }
         } else if (status === 'CLOSED') {
@@ -335,7 +321,7 @@ export function useEnhancedRealtimeSubscription({
         consecutiveFailures: 0
       });
     };
-  }, [userId, enabled, attemptConnection, stopBackupPolling]);
+  }, [userId, enabled]); // Removed circular dependencies
 
   // Manual cleanup function
   const cleanup = useCallback(() => {
