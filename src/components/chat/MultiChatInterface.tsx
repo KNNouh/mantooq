@@ -8,8 +8,8 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
-import { ConnectionStatus } from './ConnectionStatus';
-import { MessageRecovery } from './MessageRecovery';
+import { EnhancedConnectionStatus } from './EnhancedConnectionStatus';
+import { EnhancedMessageRecovery } from './EnhancedMessageRecovery';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -53,9 +53,11 @@ const MultiChatInterface = memo(() => {
     loadingState,
     maxTabs,
     connectionStatus,
+    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
+    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -218,11 +220,11 @@ const MultiChatInterface = memo(() => {
       // Add user message (this will update UI immediately)
       await addMessage(conversationId, 'user', message);
 
-      // Trigger webhook for AI response with timeout handling
-      try {
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 30000)
-        );
+        // Trigger webhook for AI response with extended timeout handling
+        try {
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 60000) // Extended to 60 seconds
+          );
         
         const webhookPromise = supabase.functions.invoke('trigger-chat-response', {
           body: {
@@ -462,10 +464,11 @@ const MultiChatInterface = memo(() => {
               <h1 className={`text-xl font-semibold ${isMobile ? 'ml-16' : ''}`}>
                 {t('chat.assistant')}
               </h1>
-              <ConnectionStatus
-                status={connectionStatus}
+              <EnhancedConnectionStatus
+                connectionHealth={connectionHealth}
                 retryCount={retryCount}
                 onReconnect={reconnect}
+                onForceRefresh={forceRefresh}
                 className="text-sm"
               />
             </div>
@@ -531,13 +534,15 @@ const MultiChatInterface = memo(() => {
                   />
                 )}
                 
-                {/* Message Recovery Component - only show when connection issues detected */}
-                {activeTab && activeTab.conversation.id && user && !isConnected && (
-                  <MessageRecovery
+                {/* Enhanced Message Recovery Component - only show when connection issues detected */}
+                {activeTab && activeTab.conversation.id && user && (
+                  <EnhancedMessageRecovery
                     conversationId={activeTab.conversation.id}
                     userId={user.id}
                     lastMessageId={activeTab.messages[activeTab.messages.length - 1]?.id}
+                    connectionHealth={connectionHealth}
                     onMessagesRecovered={handleMessagesRecovered}
+                    onForceRefresh={forceRefresh}
                   />
                 )}
                 

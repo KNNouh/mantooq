@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from './useRealtimeSubscription';
+import { useEnhancedRealtimeSubscription } from './useEnhancedRealtimeSubscription';
+import { useConversationPersistence } from './useConversationPersistence';
 
 interface Message {
   id: string;
@@ -30,6 +31,14 @@ interface LoadingState {
   logId?: string;
 }
 
+interface ConnectionHealth {
+  status: 'disconnected' | 'connecting' | 'connected' | 'error' | 'degraded';
+  quality: number;
+  latency: number;
+  lastHeartbeat: number;
+  consecutiveFailures: number;
+}
+
 interface UseImprovedMultipleConversationsReturn {
   tabs: ConversationTab[];
   activeTabId: string | null;
@@ -37,10 +46,12 @@ interface UseImprovedMultipleConversationsReturn {
   loading: boolean;
   loadingState: LoadingState;
   maxTabs: number;
-  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' | 'degraded';
+  connectionHealth: ConnectionHealth;
   retryCount: number;
   isConnected: boolean;
   reconnect: () => void;
+  forceRefresh: () => void;
   loadConversations: () => Promise<void>;
   openConversationInTab: (conversation: Conversation) => void;
   closeTab: (tabId: string) => void;
@@ -63,6 +74,9 @@ export function useImprovedMultipleConversations(
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false });
+
+  // Initialize persistence hooks
+  const { saveState, loadState, createSnapshot } = useConversationPersistence(userId);
 
   // Clear loading state helper
   const clearLoadingState = useCallback(() => {
@@ -113,8 +127,8 @@ export function useImprovedMultipleConversations(
     }
   }, [activeTabId]); // Include activeTabId dependency
 
-  // Set up realtime subscription with connection monitoring
-  const { connectionStatus, retryCount, reconnect, isConnected } = useRealtimeSubscription({
+  // Set up enhanced realtime subscription with connection monitoring
+  const { connectionStatus, connectionHealth, retryCount, reconnect, forceRefresh, isConnected } = useEnhancedRealtimeSubscription({
     userId,
     onMessage: handleRealtimeMessage,
     enabled: !!userId
@@ -394,17 +408,43 @@ export function useImprovedMultipleConversations(
     }
   }, [userId, activeTabId]);
 
-  // Load conversations when userId changes
+  // Auto-save state every 30 seconds and on changes
+  useEffect(() => {
+    if (userId && tabs.length > 0) {
+      saveState(tabs, activeTabId);
+    }
+  }, [tabs, activeTabId, userId, saveState]);
+
+  // Create snapshots every 2 minutes
+  useEffect(() => {
+    if (!userId || tabs.length === 0) return;
+
+    const snapshotInterval = setInterval(() => {
+      createSnapshot(tabs, activeTabId);
+    }, 120000); // 2 minutes
+
+    return () => clearInterval(snapshotInterval);
+  }, [userId, tabs, activeTabId, createSnapshot]);
+
+  // Load conversations and restore state when userId changes
   useEffect(() => {
     if (userId) {
       loadConversations();
+      
+      // Try to restore state from localStorage
+      const savedState = loadState();
+      if (savedState && savedState.tabs.length > 0) {
+        console.log('🔄 Restoring conversation state from localStorage');
+        setTabs(savedState.tabs);
+        setActiveTabId(savedState.activeTabId);
+      }
     } else {
       setConversations([]);
       setTabs([]);
       setActiveTabId(null);
       clearLoadingState();
     }
-  }, [userId, loadConversations, clearLoadingState]);
+  }, [userId, loadConversations, clearLoadingState, loadState]);
 
   const memoizedReturn = useMemo(() => ({
     tabs,
@@ -414,9 +454,11 @@ export function useImprovedMultipleConversations(
     loadingState,
     maxTabs: MAX_TABS,
     connectionStatus,
+    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
+    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -434,9 +476,11 @@ export function useImprovedMultipleConversations(
     loading,
     loadingState,
     connectionStatus,
+    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
+    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,
