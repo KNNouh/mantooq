@@ -27,6 +27,7 @@ interface ConversationState {
   tabs: ConversationTab[];
   activeTabId: string | null;
   lastSyncTimestamp: number;
+  expired?: boolean;
 }
 
 export function useConversationPersistence(userId: string | null) {
@@ -59,12 +60,12 @@ export function useConversationPersistence(userId: string | null) {
 
       const state = JSON.parse(saved) as ConversationState;
       
-      // Check if state is not too old (max 1 hour)
-      const maxAge = 60 * 60 * 1000; // 1 hour
+      // Check if state is not too old (max 24 hours)
+      const maxAge = 24 * 60 * 60 * 1000; // 24 hours
       if (Date.now() - state.lastSyncTimestamp > maxAge) {
-        console.log('🗑️ Conversation state expired, clearing');
+        console.log('🕒 Conversation state expired (>24h), will trigger recovery');
         localStorage.removeItem(STORAGE_KEY);
-        return null;
+        return { ...state, expired: true }; // Return expired state to trigger recovery
       }
 
       console.log('📂 Conversation state loaded from localStorage');
@@ -163,11 +164,19 @@ export function useConversationPersistence(userId: string | null) {
     }
   }, [userId]);
 
+  const refreshState = useCallback((tabs: ConversationTab[], activeTabId: string | null) => {
+    if (!userId) return;
+    
+    console.log('🔄 Refreshing conversation state timestamp');
+    saveState(tabs, activeTabId);
+  }, [userId, saveState]);
+
   return {
     saveState,
     loadState,
     clearState,
     createSnapshot,
-    getLatestSnapshot
+    getLatestSnapshot,
+    refreshState
   };
 }

@@ -188,7 +188,7 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
     setMessages([]);
   }, []);
 
-  // Load conversations when userId changes
+  // Load conversations when userId changes with recovery support
   useEffect(() => {
     if (userId) {
       loadConversations();
@@ -198,6 +198,29 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
       setCurrentConversationId(null);
     }
   }, [userId, loadConversations]);
+
+  // Add periodic state refresh to prevent expiration
+  useEffect(() => {
+    if (!userId) return;
+
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Periodic state refresh to prevent expiration');
+      // This helps prevent localStorage expiration by updating timestamp
+      if (conversations.length > 0 || messages.length > 0) {
+        // Trigger a cache update to refresh timestamp
+        const cacheKey = `conversations_${userId}`;
+        const cached = conversationsCache.get(cacheKey);
+        if (cached) {
+          conversationsCache.set(cacheKey, {
+            data: cached.data,
+            timestamp: Date.now()
+          });
+        }
+      }
+    }, 20 * 60 * 1000); // Refresh every 20 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [userId, conversations.length, messages.length]);
 
   // Real-time subscription for messages - improved reliability
   useEffect(() => {

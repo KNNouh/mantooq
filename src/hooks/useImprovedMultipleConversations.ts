@@ -77,7 +77,7 @@ export function useImprovedMultipleConversations(
   const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false });
 
   // Initialize persistence hooks
-  const { saveState, loadState, createSnapshot } = useConversationPersistence(userId);
+  const { saveState, loadState, createSnapshot, refreshState } = useConversationPersistence(userId);
 
   // Clear loading state helper
   const clearLoadingState = useCallback(() => {
@@ -139,7 +139,7 @@ export function useImprovedMultipleConversations(
   }, [activeTabId]);
 
   // Set up enhanced realtime subscription with connection monitoring
-  const { connectionStatus, connectionHealth, retryCount, reconnect, forceRefresh, isConnected } = useEnhancedRealtimeSubscription({
+  const { connectionStatus, connectionHealth, retryCount, reconnect, forceRefresh: realtimeRefresh, isConnected } = useEnhancedRealtimeSubscription({
     userId,
     onMessage: handleRealtimeMessage,
     enabled: !!userId
@@ -165,6 +165,19 @@ export function useImprovedMultipleConversations(
       setLoading(false);
     }
   }, [userId]);
+
+  // Enhanced force refresh that includes conversation recovery
+  const forceRefresh = useCallback(async () => {
+    console.log('🔄 Force refreshing with conversation recovery...');
+    
+    // First trigger realtime refresh
+    realtimeRefresh();
+    
+    // Then reload conversations from database
+    await loadConversations();
+    
+    console.log('📝 Force refresh completed, conversations reloaded');
+  }, [realtimeRefresh, loadConversations]);
 
   const loadMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
     try {
@@ -419,12 +432,24 @@ export function useImprovedMultipleConversations(
     }
   }, [userId, activeTabId]);
 
-  // Auto-save state every 30 seconds and on changes
+  // Auto-save state every 30 seconds and on changes with periodic refresh
   useEffect(() => {
     if (userId && tabs.length > 0) {
       saveState(tabs, activeTabId);
     }
   }, [tabs, activeTabId, userId, saveState]);
+
+  // Periodic state refresh to prevent expiration
+  useEffect(() => {
+    if (!userId || tabs.length === 0) return;
+
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Refreshing state to prevent expiration');
+      refreshState(tabs, activeTabId);
+    }, 20 * 60 * 1000); // Refresh every 20 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [userId, tabs, activeTabId, refreshState]);
 
   // Create snapshots every 2 minutes
   useEffect(() => {
@@ -437,17 +462,23 @@ export function useImprovedMultipleConversations(
     return () => clearInterval(snapshotInterval);
   }, [userId, tabs, activeTabId, createSnapshot]);
 
-  // Load conversations and restore state when userId changes
+  // Load conversations and restore state when userId changes with recovery support
   useEffect(() => {
     if (userId) {
       loadConversations();
       
       // Try to restore state from localStorage
       const savedState = loadState();
-      if (savedState && savedState.tabs.length > 0) {
-        console.log('🔄 Restoring conversation state from localStorage');
-        setTabs(savedState.tabs);
-        setActiveTabId(savedState.activeTabId);
+      if (savedState) {
+        if (savedState.expired) {
+          console.log('🔄 State expired, recovering recent conversations...');
+          // State expired, we'll let the newly loaded conversations populate naturally
+          // This provides a graceful recovery instead of empty tabs
+        } else if (savedState.tabs && savedState.tabs.length > 0) {
+          console.log('🔄 Restoring conversation state from localStorage');
+          setTabs(savedState.tabs);
+          setActiveTabId(savedState.activeTabId);
+        }
       }
     } else {
       setConversations([]);
