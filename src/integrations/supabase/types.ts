@@ -279,6 +279,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ar_tsv: {
+        Args: { p_article?: string; p_content: string; p_title?: string }
+        Returns: unknown
+      }
+      arabic_normalize: {
+        Args: { p: string }
+        Returns: string
+      }
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
@@ -291,9 +299,21 @@ export type Database = {
         Args: { p: string }
         Returns: string
       }
+      compute_law_key: {
+        Args: { p: Json }
+        Returns: string
+      }
+      compute_stable_key: {
+        Args: { p: Json; p_article: string }
+        Returns: string
+      }
       extract_article_label: {
         Args: { p: string }
         Returns: string
+      }
+      extract_article_num: {
+        Args: { p: string }
+        Returns: number
       }
       get_users_with_roles: {
         Args: Record<PropertyKey, never>
@@ -346,6 +366,14 @@ export type Database = {
       hnswhandler: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      ilike_unaccent: {
+        Args: { a: string; b: string }
+        Returns: boolean
+      }
+      ingest_relations_for_document: {
+        Args: { p_document_id: number }
+        Returns: undefined
       }
       ivfflat_bit_support: {
         Args: { "": unknown }
@@ -406,6 +434,31 @@ export type Database = {
           score: number
         }[]
       }
+      match_hybrid_alt: {
+        Args: { filter: Json; match_count: number; query_embedding: string }
+        Returns: {
+          article_no: string
+          content: string
+          id: number
+          metadata: Json
+          score: number
+        }[]
+      }
+      match_hybrid_rrf: {
+        Args: {
+          filter?: Json
+          match_count?: number
+          query_embedding: string
+          query_text: string
+        }
+        Returns: {
+          article_no: string
+          content: string
+          id: number
+          metadata: Json
+          score: number
+        }[]
+      }
       match_qapairs: {
         Args: {
           lang_pref?: string
@@ -419,6 +472,26 @@ export type Database = {
           similarity: number
         }[]
       }
+      match_with_relations: {
+        Args: {
+          filter?: Json
+          hops?: number
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          article_no: string
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
+          via_relation: boolean
+        }[]
+      }
+      month_le: {
+        Args: { a: string; b: string }
+        Returns: boolean
+      }
       promote_user_to_admin: {
         Args: { target_user_id: string }
         Returns: undefined
@@ -427,12 +500,22 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      resolve_document_relations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      semantic_filter_holds: {
+        Args: { article_label: string; f: Json; md: Json }
+        Returns: boolean
+      }
       set_kb_file_status: {
         Args: { p_id: string; p_status: string }
         Returns: undefined
       }
       simple_tsv: {
-        Args: { p: string }
+        Args:
+          | { p: string }
+          | { p_article?: string; p_content: string; p_title?: string }
         Returns: unknown
       }
       sparsevec_out: {
@@ -445,6 +528,10 @@ export type Database = {
       }
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
+        Returns: number
+      }
+      stitch_orphan_prefaces: {
+        Args: { p_file: string }
         Returns: number
       }
       unaccent: {
