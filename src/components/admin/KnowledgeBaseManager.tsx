@@ -320,20 +320,18 @@ const KnowledgeBaseManager = () => {
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(file.status)}
-                      <FileText className="w-5 h-5 text-muted-foreground" />
-                    </div>
+                    {/* Status icon on the far left */}
+                    {getStatusIcon(file.status)}
                     
+                    {/* Filename as primary element */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{file.filename}</p>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>Created: {formatDate(file.created_at)}</span>
-                        <span>Updated: {formatDate(file.updated_at)}</span>
-                      </div>
+                      <h3 className="text-lg font-semibold truncate text-foreground">{file.filename}</h3>
+                      <p className="text-sm text-muted-foreground">Updated: {formatDate(file.updated_at)}</p>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    {/* Status badge and created date */}
+                    <div className="flex items-center space-x-3 text-sm">
+                      <span className="text-muted-foreground">Created: {formatDate(file.created_at)}</span>
                       <Badge className={getStatusColor(file.status)}>
                         {file.status}
                       </Badge>
