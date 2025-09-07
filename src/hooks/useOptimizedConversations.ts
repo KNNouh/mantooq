@@ -7,6 +7,7 @@ interface Message {
   content: string;
   created_at: string;
   conversation_id?: string;
+  user_id: string;
 }
 
 interface Conversation {
@@ -85,7 +86,7 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select('id, role, content, created_at')
+        .select('id, role, content, created_at, conversation_id, user_id')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -198,36 +199,47 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
     }
   }, [userId, loadConversations]);
 
-  // Real-time subscription for messages
+  // Real-time subscription for messages - improved reliability
   useEffect(() => {
     if (!userId) return;
 
-    console.log('Setting up real-time subscription for user:', userId);
+    console.log('🔌 Setting up optimized real-time subscription for user:', userId);
     
     const channel = supabase
-      .channel('messages-realtime')
+      .channel(`messages-optimized-${userId}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `user_id=eq.${userId}`,
+          // Remove filter to catch all messages, then filter in handler
         },
         (payload) => {
-          console.log('New message received via realtime:', payload);
+          console.log('📨 Raw message received in optimized subscription:', payload);
           const newMessage = payload.new as Message;
           
-          // Only add assistant messages to prevent duplicates (user messages are added optimistically)
-          if (newMessage.role === 'assistant' && currentConversationId && newMessage.conversation_id === currentConversationId) {
-            console.log('Adding assistant message to state immediately:', newMessage);
+          // Filter for current user
+          if (newMessage.user_id !== userId) {
+            console.log('🔄 Message not for current user, skipping');
+            return;
+          }
+          
+          console.log('✅ Processing message in optimized subscription:', newMessage);
+          
+          // Add all messages (both user and assistant) to current conversation if it matches
+          if (currentConversationId && newMessage.conversation_id === currentConversationId) {
+            console.log('📝 Adding message to current conversation:', newMessage.content?.slice(0, 50));
             
             setMessages(prevMessages => {
               // Check if message already exists to prevent duplicates
               if (prevMessages.find(msg => msg.id === newMessage.id)) {
+                console.log('🚫 Duplicate message detected in optimized subscription');
                 return prevMessages;
               }
-              return [...prevMessages, newMessage];
+              return [...prevMessages, newMessage].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
             });
 
             // Update cache immediately
@@ -235,20 +247,27 @@ export function useOptimizedConversations(userId: string | null): UseOptimizedCo
               const cached = messagesCache.get(currentConversationId);
               if (cached && !cached.data.find(msg => msg.id === newMessage.id)) {
                 messagesCache.set(currentConversationId, {
-                  data: [...cached.data, newMessage],
+                  data: [...cached.data, newMessage].sort((a, b) => 
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                  ),
                   timestamp: Date.now()
                 });
               }
             }
+          } else {
+            console.log('⚠️ Message not for current conversation:', {
+              messageConversationId: newMessage.conversation_id,
+              currentConversationId
+            });
           }
         }
       )
       .subscribe((status) => {
-        console.log('Real-time subscription status:', status);
+        console.log('🔌 Optimized real-time subscription status:', status);
       });
 
     return () => {
-      console.log('Cleaning up real-time subscription');
+      console.log('🧹 Cleaning up optimized real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [userId, currentConversationId]);

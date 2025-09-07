@@ -7,6 +7,7 @@ interface Message {
   content: string;
   created_at: string;
   conversation_id: string;
+  user_id: string;
 }
 
 interface UseEnhancedRealtimeSubscriptionProps {
@@ -111,7 +112,7 @@ export function useEnhancedRealtimeSubscription({
         
         const { data, error } = await supabase
           .from('messages')
-          .select('id, role, content, created_at, conversation_id')
+          .select('id, role, content, created_at, conversation_id, user_id')
           .eq('user_id', userId)
           .gt('created_at', new Date(pollSince).toISOString())
           .order('created_at', { ascending: true });
@@ -168,13 +169,21 @@ export function useEnhancedRealtimeSubscription({
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `user_id=eq.${userId}`,
+          // Remove user_id filter to catch ALL messages, then filter in handler
         },
         (payload) => {
-          console.log('📨 New message received via realtime:', payload);
+          console.log('📨 Raw message received via realtime:', payload);
           const newMessage = payload.new as Message;
           
-          // Enhanced duplicate prevention with timestamp check
+          // Filter messages for current user in the handler
+          if (newMessage.user_id !== userId) {
+            console.log('🔄 Message not for current user, skipping');
+            return;
+          }
+          
+          console.log('✅ Processing message for user:', userId, newMessage);
+          
+          // Simplified duplicate prevention - only check ID
           if (newMessage.id === lastMessageId.current) {
             console.log('🚫 Skipping duplicate message:', newMessage.id);
             return;
@@ -192,6 +201,7 @@ export function useEnhancedRealtimeSubscription({
           
           // Immediate callback without delay to prevent message loss
           try {
+            console.log('🚀 Calling message handler for:', newMessage.content?.slice(0, 50));
             messageHandlerRef.current(newMessage);
           } catch (error) {
             console.error('Error handling realtime message:', error);
@@ -368,7 +378,7 @@ export function useEnhancedRealtimeSubscription({
       console.log('🔄 Force refreshing messages...');
       const { data, error } = await supabase
         .from('messages')
-        .select('id, role, content, created_at, conversation_id')
+        .select('id, role, content, created_at, conversation_id, user_id')
         .eq('user_id', userId)
         .gt('created_at', new Date(Date.now() - 300000).toISOString()) // Last 5 minutes
         .order('created_at', { ascending: true });

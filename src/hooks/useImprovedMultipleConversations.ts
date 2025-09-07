@@ -9,6 +9,7 @@ interface Message {
   content: string;
   created_at: string;
   conversation_id: string;
+  user_id: string;
 }
 
 interface Conversation {
@@ -83,13 +84,14 @@ export function useImprovedMultipleConversations(
     setLoadingState({ isLoading: false });
   }, []);
 
-  // Handle incoming realtime messages with proper dependency management
+  // Handle incoming realtime messages with improved reliability
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
-    console.log('📨 Processing realtime message:', newMessage);
+    console.log('📨 Processing realtime message for all tabs:', newMessage);
 
     setTabs(prev => {
       let wasUpdated = false;
       const updatedTabs = prev.map(tab => {
+        // Check if this message belongs to this tab's conversation
         if (tab.conversation.id === newMessage.conversation_id) {
           // Simple ID-based duplicate check
           const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
@@ -103,12 +105,13 @@ export function useImprovedMultipleConversations(
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           );
           
-          console.log(`✅ Added message to tab ${tab.id}:`, newMessage.content.slice(0, 50));
+          console.log(`✅ Added message to tab ${tab.id} (${tab.conversation.title}):`, newMessage.content.slice(0, 50));
           wasUpdated = true;
           
           return {
             ...tab,
             messages: updatedMessages,
+            // Only increment unread for assistant messages in non-active tabs
             unreadCount: tab.id !== activeTabId && newMessage.role === 'assistant' 
               ? tab.unreadCount + 1 
               : tab.unreadCount
@@ -116,6 +119,14 @@ export function useImprovedMultipleConversations(
         }
         return tab;
       });
+
+      if (wasUpdated) {
+        console.log('🔄 Tabs updated with new message');
+      } else {
+        console.log('⚠️ Message conversation not found in any open tab:', newMessage.conversation_id);
+        // Log all open conversation IDs for debugging
+        console.log('📂 Open conversation IDs:', prev.map(tab => ({ id: tab.conversation.id, title: tab.conversation.title })));
+      }
 
       return updatedTabs;
     });
@@ -125,7 +136,7 @@ export function useImprovedMultipleConversations(
       console.log('🛑 Assistant message received, clearing loading state');
       setLoadingState({ isLoading: false });
     }
-  }, [activeTabId]); // Include activeTabId dependency
+  }, [activeTabId]);
 
   // Set up enhanced realtime subscription with connection monitoring
   const { connectionStatus, connectionHealth, retryCount, reconnect, forceRefresh, isConnected } = useEnhancedRealtimeSubscription({
@@ -159,7 +170,7 @@ export function useImprovedMultipleConversations(
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select('id, role, content, created_at, conversation_id')
+        .select('id, role, content, created_at, conversation_id, user_id')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
