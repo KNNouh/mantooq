@@ -313,85 +313,97 @@ const KnowledgeBaseManager = () => {
               <p className="text-muted-foreground">Upload your first file to get started</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid gap-4">
               {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-4 flex-1">
-                    {/* Status icon on the far left */}
-                    {getStatusIcon(file.status)}
-                    
-                    {/* Filename as primary element */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold truncate text-foreground">{file.filename}</h3>
-                      <p className="text-sm text-muted-foreground">Updated: {formatDate(file.updated_at)}</p>
-                    </div>
-                    
-                    {/* Status badge and created date */}
-                    <div className="flex items-center space-x-3 text-sm">
-                      <span className="text-muted-foreground">Created: {formatDate(file.created_at)}</span>
-                      <Badge className={getStatusColor(file.status)}>
-                        {file.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 ml-4">
-                    {canTriggerProcessing(file) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleTriggerProcessing(file.id)}
-                        disabled={processing === file.id}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      >
-                        {processing === file.id ? (
-                          <Clock className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <PlayCircle className="w-4 h-4" />
-                        )}
-                        Process
-                      </Button>
-                    )}
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={deleting === file.id}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          {deleting === file.id ? (
-                            <Clock className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete File</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{file.filename}"? This action cannot be undone.
-                            This will also delete all associated documents and processing logs.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(file.id)}
-                            className="bg-red-600 hover:bg-red-700"
+                <Card key={file.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      {/* Left side - Main file info */}
+                      <div className="flex items-start space-x-4 flex-1">
+                        <div className="flex-shrink-0 mt-1">
+                          {getStatusIcon(file.status)}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="text-xl font-semibold text-foreground truncate">
+                              {file.filename}
+                            </h3>
+                            <Badge className={getStatusColor(file.status)}>
+                              {file.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">Created:</span>
+                              <span>{formatDate(file.created_at)}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">Updated:</span>
+                              <span>{formatDate(file.updated_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Right side - Actions */}
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        {canTriggerProcessing(file) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleTriggerProcessing(file.id)}
+                            disabled={processing === file.id}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
+                            {processing === file.id ? (
+                              <Clock className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <PlayCircle className="w-4 h-4 mr-2" />
+                            )}
+                            Process
+                          </Button>
+                        )}
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={deleting === file.id}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              {deleting === file.id ? (
+                                <Clock className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete File</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{file.filename}"? This action cannot be undone.
+                                This will also delete all associated documents and processing logs.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(file.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
