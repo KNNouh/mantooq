@@ -101,14 +101,15 @@ export function useEnhancedRealtimeSubscription({
     }, 30000); // Every 30 seconds - less frequent
   }, []);
 
-  // Backup polling for message recovery - only when connection fails
+  // Enhanced backup polling to detect n8n direct inserts
   const startBackupPolling = useCallback(() => {
     if (!userId || pollingIntervalRef.current) return;
 
+    console.log('🔄 Starting enhanced backup polling for n8n message recovery');
     pollingIntervalRef.current = setInterval(async () => {
       try {
         const now = Date.now();
-        const pollSince = Math.max(lastPollTime.current, now - 60000); // Last minute
+        const pollSince = Math.max(lastPollTime.current, now - 120000); // Last 2 minutes for better coverage
         
         const { data, error } = await supabase
           .from('messages')
@@ -118,25 +119,46 @@ export function useEnhancedRealtimeSubscription({
           .order('created_at', { ascending: true });
 
         if (error) {
-          console.error('Backup polling error:', error);
+          console.error('📡 Backup polling error:', error);
           return;
         }
 
         if (data && data.length > 0) {
-          console.log(`📥 Backup polling recovered ${data.length} messages`);
+          console.log(`🎯 Backup polling found ${data.length} messages (checking for n8n inserts)`);
+          let newMessagesFound = 0;
+          
           data.forEach(message => {
             if (message.id !== lastMessageId.current) {
-              messageHandlerRef.current(message as Message);
+              console.log(`📨 Recovered message via polling: ${message.role} - ${message.content?.slice(0, 50)}...`);
+              messageHandlerRef.current({
+                ...message,
+                _source: 'polling' // Add source indicator for debugging
+              } as Message & { _source: string });
               lastMessageId.current = message.id;
+              newMessagesFound++;
             }
           });
+          
+          if (newMessagesFound > 0) {
+            console.log(`✅ Backup polling recovered ${newMessagesFound} new messages from n8n`);
+            
+            // Update connection health to indicate polling recovery
+            setConnectionHealth(prev => ({
+              ...prev,
+              status: 'degraded', // Show degraded status when using polling
+              quality: 70, // Lower quality for polling mode
+              lastHeartbeat: now
+            }));
+          }
+        } else {
+          console.log('📡 Backup polling: No new messages found');
         }
 
         lastPollTime.current = now;
       } catch (error) {
-        console.error('Backup polling failed:', error);
+        console.error('📡 Backup polling failed:', error);
       }
-    }, 30000); // Every 30 seconds - less aggressive
+    }, 15000); // Every 15 seconds for better n8n message detection
   }, [userId]);
 
   const stopBackupPolling = useCallback(() => {
@@ -225,8 +247,12 @@ export function useEnhancedRealtimeSubscription({
           // Start heartbeat monitoring
           startHeartbeat();
           
-          // Stop backup polling since real-time is working
-          stopBackupPolling();
+          // Keep backup polling running to catch n8n direct inserts
+          // Real-time might miss messages inserted directly by n8n without callback
+          if (!pollingIntervalRef.current) {
+            console.log('🔄 Starting backup polling alongside real-time for n8n message detection');
+            startBackupPolling();
+          }
           
           // Clear any pending retry
           if (retryTimeoutRef.current) {

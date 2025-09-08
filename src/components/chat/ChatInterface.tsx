@@ -9,6 +9,8 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from './AdminUpload';
+import { ConnectionDebugIndicator } from './ConnectionDebugIndicator';
+import { useEnhancedRealtimeSubscription } from '@/hooks/useEnhancedRealtimeSubscription';
 import { useNavigate } from 'react-router-dom';
 
 interface Message {
@@ -16,6 +18,9 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  conversation_id: string;
+  user_id: string;
+  _source?: 'realtime' | 'polling'; // Debug indicator
 }
 
 interface Conversation {
@@ -34,6 +39,32 @@ export const ChatInterface: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Enhanced real-time subscription with debug capabilities
+  const { 
+    connectionHealth, 
+    retryCount, 
+    forceRefresh, 
+    reconnect 
+  } = useEnhancedRealtimeSubscription({
+    userId: user?.id || null,
+    onMessage: (newMessage: Message) => {
+      console.log('📨 Message received via subscription:', newMessage);
+      
+      // Only add if it matches current conversation or no conversation selected
+      if (!currentConversationId || newMessage.conversation_id === currentConversationId) {
+        setMessages(prevMessages => {
+          const exists = prevMessages.some(msg => msg.id === newMessage.id);
+          if (!exists) {
+            console.log('✅ Adding new message to chat:', newMessage.content?.slice(0, 50));
+            return [...prevMessages, { ...newMessage, _source: newMessage._source || 'realtime' }];
+          }
+          return prevMessages;
+        });
+      }
+    },
+    enabled: true
+  });
 
   useEffect(() => {
     if (user) {
@@ -45,37 +76,13 @@ export const ChatInterface: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Real-time subscription for new messages
+  // Load messages when conversation changes
   useEffect(() => {
-    if (!currentConversationId) return;
-
-    const channel = supabase
-      .channel('messages-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${currentConversationId}`
-        },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          // Only add if it's not already in our messages (avoid duplicates)
-          setMessages(prevMessages => {
-            const exists = prevMessages.some(msg => msg.id === newMessage.id);
-            if (!exists) {
-              return [...prevMessages, newMessage];
-            }
-            return prevMessages;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    if (currentConversationId) {
+      loadMessages(currentConversationId);
+    } else {
+      setMessages([]);
+    }
   }, [currentConversationId]);
 
   const loadConversations = async () => {
@@ -295,7 +302,15 @@ export const ChatInterface: React.FC = () => {
         )}
         
         <CardHeader className="border-b">
-          <CardTitle>Chat Assistant</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Chat Assistant</CardTitle>
+            <ConnectionDebugIndicator
+              connectionHealth={connectionHealth}
+              retryCount={retryCount}
+              onForceRefresh={forceRefresh}
+              onReconnect={reconnect}
+            />
+          </div>
         </CardHeader>
 
         <ScrollArea className="flex-1 p-4">
@@ -323,6 +338,12 @@ export const ChatInterface: React.FC = () => {
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  {/* Debug indicator for message source */}
+                  {(process.env.NODE_ENV === 'development' || message._source === 'polling') && message._source && (
+                    <div className="text-xs opacity-60 mt-1">
+                      {message._source === 'polling' ? '📡 Polling' : '⚡ Real-time'}
+                    </div>
+                  )}
                 </div>
                 
                 {message.role === 'user' && (
