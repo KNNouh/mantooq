@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, User, Bot, Upload, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from './AdminUpload';
@@ -31,6 +32,7 @@ interface Conversation {
 
 export const ChatInterface: React.FC = () => {
   const { user, signOut, isAdmin } = useAuth();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -222,7 +224,7 @@ export const ChatInterface: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
       <div className="w-80 border-r bg-sidebar-background">
         <div className="p-4 border-b">
@@ -335,9 +337,13 @@ export const ChatInterface: React.FC = () => {
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
-                  }`}
+                  } ${language === 'ar' ? 'arabic-text' : ''}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className={`text-sm whitespace-pre-wrap ${
+                    language === 'ar' ? 'prose-rtl' : ''
+                  }`}>
+                    {message.content}
+                  </p>
                   {/* Debug indicator for message source */}
                   {(process.env.NODE_ENV === 'development' || message._source === 'polling') && message._source && (
                     <div className="text-xs opacity-60 mt-1">
@@ -378,9 +384,10 @@ export const ChatInterface: React.FC = () => {
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1"
+              placeholder={t('chat.type_message')}
+              className={`flex-1 ${language === 'ar' ? 'text-right' : ''}`}
               disabled={loading}
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
             />
             <Button type="submit" disabled={loading || !inputMessage.trim()}>
               <Send className="w-4 h-4" />

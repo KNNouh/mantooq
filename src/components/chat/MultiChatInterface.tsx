@@ -421,7 +421,7 @@ const MultiChatInterface = memo(() => {
   );
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
