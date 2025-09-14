@@ -2,7 +2,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Wifi, WifiOff, Signal, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 interface ConnectionHealth {
   status: 'disconnected' | 'connecting' | 'connected' | 'error' | 'degraded';
   quality: number;
@@ -10,7 +9,6 @@ interface ConnectionHealth {
   lastHeartbeat: number;
   consecutiveFailures: number;
 }
-
 interface EnhancedConnectionStatusProps {
   connectionHealth: ConnectionHealth;
   retryCount: number;
@@ -18,7 +16,6 @@ interface EnhancedConnectionStatusProps {
   onForceRefresh?: () => void;
   className?: string;
 }
-
 export function EnhancedConnectionStatus({
   connectionHealth,
   retryCount,
@@ -47,7 +44,6 @@ export function EnhancedConnectionStatus({
         return <WifiOff className="h-4 w-4 text-gray-500" />;
     }
   };
-
   const getStatusText = () => {
     switch (connectionHealth.status) {
       case 'connected':
@@ -70,13 +66,10 @@ export function EnhancedConnectionStatus({
         return 'Unknown';
     }
   };
-
   const getStatusColor = () => {
     switch (connectionHealth.status) {
       case 'connected':
-        return connectionHealth.quality > 80 ? 'text-green-600 dark:text-green-400' :
-               connectionHealth.quality > 50 ? 'text-yellow-600 dark:text-yellow-400' :
-               'text-orange-600 dark:text-orange-400';
+        return connectionHealth.quality > 80 ? 'text-green-600 dark:text-green-400' : connectionHealth.quality > 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-orange-600 dark:text-orange-400';
       case 'degraded':
         return 'text-orange-600 dark:text-orange-400';
       case 'connecting':
@@ -88,55 +81,30 @@ export function EnhancedConnectionStatus({
         return 'text-gray-600 dark:text-gray-400';
     }
   };
-
-  const shouldShowActions = connectionHealth.status === 'error' || 
-                           connectionHealth.status === 'disconnected';
-
-  const timeSinceLastHeartbeat = connectionHealth.lastHeartbeat > 0 ? 
-    Math.floor((Date.now() - connectionHealth.lastHeartbeat) / 1000) : 0;
-
-  return (
-    <div className={cn('flex items-center gap-2', className)}>
+  const shouldShowActions = connectionHealth.status === 'error' || connectionHealth.status === 'disconnected';
+  const timeSinceLastHeartbeat = connectionHealth.lastHeartbeat > 0 ? Math.floor((Date.now() - connectionHealth.lastHeartbeat) / 1000) : 0;
+  return <div className={cn('flex items-center gap-2', className)}>
       <div className="flex items-center gap-2">
         {getStatusIcon()}
-        <span className={cn('text-sm font-medium', getStatusColor())}>
-          {getStatusText()}
-        </span>
+        
       </div>
 
       {/* Detailed info for degraded connections only */}
-      {connectionHealth.status === 'degraded' && (
-        <div className="text-xs text-muted-foreground">
+      {connectionHealth.status === 'degraded' && <div className="text-xs text-muted-foreground">
           {connectionHealth.latency > 0 && `${connectionHealth.latency}ms`}
           {timeSinceLastHeartbeat > 60 && ` • ${timeSinceLastHeartbeat}s ago`}
-        </div>
-      )}
+        </div>}
 
       {/* Action buttons for poor connections */}
-      {shouldShowActions && (
-        <div className="flex gap-1">
-          <Button
-            onClick={onReconnect}
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs"
-          >
+      {shouldShowActions && <div className="flex gap-1">
+          <Button onClick={onReconnect} size="sm" variant="outline" className="h-6 px-2 text-xs">
             <RefreshCw className="h-3 w-3 mr-1" />
             Reconnect
           </Button>
           
-          {onForceRefresh && (connectionHealth.status === 'error' || connectionHealth.status === 'disconnected') && (
-            <Button
-              onClick={onForceRefresh}
-              size="sm"
-              variant="default"
-              className="h-6 px-2 text-xs bg-primary hover:bg-primary/90"
-            >
+          {onForceRefresh && (connectionHealth.status === 'error' || connectionHealth.status === 'disconnected') && <Button onClick={onForceRefresh} size="sm" variant="default" className="h-6 px-2 text-xs bg-primary hover:bg-primary/90">
               Refresh
-            </Button>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            </Button>}
+        </div>}
+    </div>;
 }
