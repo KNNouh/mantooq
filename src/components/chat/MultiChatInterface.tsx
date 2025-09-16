@@ -19,6 +19,7 @@ import ImprovedChatLoadingIndicator from './ImprovedChatLoadingIndicator';
 import { DeleteConversationDialog } from './DeleteConversationDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { logger } from '@/components/ProductionLogger';
 
 interface Message {
   id: string;
@@ -79,7 +80,7 @@ const MultiChatInterface = memo(() => {
     
     // Use the openConversationInTab function to refresh the tab with recovered messages
     messages.forEach(message => {
-      console.log('🔄 Processing recovered message:', message.id);
+      logger.log('🔄 Processing recovered message:', message.id);
     });
     
     // Reload the active conversation to get all messages
@@ -105,7 +106,7 @@ const MultiChatInterface = memo(() => {
 
   // Handle timeout for loading indicator
   const handleTimeout = useCallback(() => {
-    console.warn('⚠️ Chat loading timeout');
+    logger.warn('⚠️ Chat loading timeout');
     clearLoadingState();
   }, [clearLoadingState]);
 
@@ -128,7 +129,7 @@ const MultiChatInterface = memo(() => {
         variant: "default"
       });
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      logger.error('Error deleting conversation:', error);
       toast({
         title: t('delete.error'),
         description: error instanceof Error ? error.message : 'Unknown error',
@@ -190,7 +191,7 @@ const MultiChatInterface = memo(() => {
             }
           }, 100);
         } catch (convError: any) {
-          console.error('Error creating conversation:', convError);
+          logger.error('Error creating conversation:', convError);
           
           if (convError.message?.includes('3 محادثات') || convError.message?.includes('more than 3 conversations')) {
             toast({
@@ -251,10 +252,10 @@ const MultiChatInterface = memo(() => {
           });
         }
 
-        console.log('✅ AI response triggered successfully');
+        logger.log('✅ AI response triggered successfully');
         
       } catch (webhookError: any) {
-        console.error('Error in webhook request:', webhookError);
+        logger.error('Error in webhook request:', webhookError);
         
         let errorMessage = 'حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.';
         
@@ -273,7 +274,7 @@ const MultiChatInterface = memo(() => {
       }
 
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       clearLoadingState();
       setInputMessage(message); // Restore input on error
       

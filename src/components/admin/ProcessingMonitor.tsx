@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RefreshCw, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/components/ProductionLogger';
 
 interface ProcessingFile {
   id: string;
@@ -32,7 +33,7 @@ export const ProcessingMonitor = () => {
       if (error) throw error;
       setFiles(data || []);
     } catch (error) {
-      console.error('Error fetching files:', error);
+      logger.error('Error fetching files:', error);
       toast({
         title: "Error",
         description: "Failed to fetch processing files",

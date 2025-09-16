@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Database, Clock, TrendingUp } from 'lucide-react';
+import { logger } from '@/components/ProductionLogger';
 
 interface KBStats {
   totalFiles: number;
@@ -50,7 +51,7 @@ export const KnowledgeBaseStats = () => {
       });
 
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }

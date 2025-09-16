@@ -11,6 +11,7 @@ import { Crown, UserMinus, Plus, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { logger } from '@/components/ProductionLogger';
 
 interface UserWithRole {
   id: string;
@@ -55,7 +56,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
 
       setUsers(usersWithRoles);
     } catch (error) {
-      console.error('Error loading users:', error);
+      logger.error('Error loading users:', error);
       toast({
         title: 'Error',
         description: 'Failed to load users',
@@ -84,7 +85,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
       loadUsers();
       onUserPromoted?.();
     } catch (error: any) {
-      console.error('Error promoting user:', error);
+      logger.error('Error promoting user:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to promote user',
@@ -113,7 +114,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserPromoted }
       loadUsers();
       onUserPromoted?.();
     } catch (error: any) {
-      console.error('Error removing admin role:', error);
+      logger.error('Error removing admin role:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to remove admin role',

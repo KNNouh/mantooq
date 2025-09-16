@@ -13,6 +13,7 @@ import { AdminUpload } from './AdminUpload';
 import { ConnectionDebugIndicator } from './ConnectionDebugIndicator';
 import { useEnhancedRealtimeSubscription } from '@/hooks/useEnhancedRealtimeSubscription';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/components/ProductionLogger';
 
 interface Message {
   id: string;
@@ -51,14 +52,14 @@ export const ChatInterface: React.FC = () => {
   } = useEnhancedRealtimeSubscription({
     userId: user?.id || null,
     onMessage: (newMessage: Message) => {
-      console.log('📨 Message received via subscription:', newMessage);
+      logger.log('📨 Message received via subscription:', newMessage);
       
       // Only add if it matches current conversation or no conversation selected
       if (!currentConversationId || newMessage.conversation_id === currentConversationId) {
         setMessages(prevMessages => {
           const exists = prevMessages.some(msg => msg.id === newMessage.id);
           if (!exists) {
-            console.log('✅ Adding new message to chat:', newMessage.content?.slice(0, 50));
+            logger.log('✅ Adding new message to chat:', newMessage.content?.slice(0, 50));
             return [...prevMessages, { ...newMessage, _source: newMessage._source || 'realtime' }];
           }
           return prevMessages;
@@ -97,7 +98,7 @@ export const ChatInterface: React.FC = () => {
       if (error) throw error;
       setConversations(data || []);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      logger.error('Error loading conversations:', error);
     }
   };
 
@@ -112,7 +113,7 @@ export const ChatInterface: React.FC = () => {
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logger.error('Error loading messages:', error);
     }
   };
 
@@ -130,7 +131,7 @@ export const ChatInterface: React.FC = () => {
       if (error) throw error;
       return data.id;
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      logger.error('Error creating conversation:', error);
       throw error;
     }
   };
@@ -151,7 +152,7 @@ export const ChatInterface: React.FC = () => {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error adding message:', error);
+      logger.error('Error adding message:', error);
       throw error;
     }
   };
@@ -188,7 +189,7 @@ export const ChatInterface: React.FC = () => {
         });
         
         if (error) {
-          console.error('Error calling webhook:', error);
+          logger.error('Error calling webhook:', error);
           toast({
             title: 'Warning',
             description: 'Message sent but webhook failed',
@@ -198,12 +199,12 @@ export const ChatInterface: React.FC = () => {
         
         setLoading(false);
       } catch (error) {
-        console.error('Error calling n8n webhook:', error);
+        logger.error('Error calling n8n webhook:', error);
         setLoading(false);
       }
 
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       toast({
         title: 'Error',
         description: 'Failed to send message',

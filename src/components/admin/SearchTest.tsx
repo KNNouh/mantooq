@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/components/ProductionLogger';
 
 interface SearchResult {
   id: number;
@@ -74,7 +75,7 @@ export const SearchTest = () => {
         description: `Found ${results.length} results`
       });
     } catch (error: any) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
       toast({
         title: 'Search Error',
         description: error.message,

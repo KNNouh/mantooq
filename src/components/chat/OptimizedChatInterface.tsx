@@ -8,6 +8,7 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useOptimizedConversations } from '@/hooks/useOptimizedConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { AdminUpload } from './AdminUpload';
+import { logger } from '@/components/ProductionLogger';
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -59,7 +60,7 @@ const OptimizedChatInterface = memo(() => {
       table: 'messages',
       filter: `conversation_id=eq.${currentConversationId}`
     }, payload => {
-      console.log('Real-time message received:', payload);
+      logger.log('Real-time message received:', payload);
       const newMessage = payload.new as Message;
 
       // Update messages via the hook (this will trigger a re-fetch)
@@ -117,15 +118,15 @@ const OptimizedChatInterface = memo(() => {
         error
       }) => {
         if (error) {
-          console.error('Error triggering chat response:', error);
+          logger.error('Error triggering chat response:', error);
           // Add error message to chat
           addMessage(conversationId!, 'assistant', 'Sorry, I encountered an error. Please try again.');
         }
       }).catch(error => {
-        console.error('Webhook error:', error);
+        logger.error('Webhook error:', error);
       });
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
     } finally {
       setIsLoading(false);
     }

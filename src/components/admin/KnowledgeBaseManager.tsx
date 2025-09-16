@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, FileText, Clock, CheckCircle, XCircle, AlertCircle, PlayCircle } from 'lucide-react';
+import { logger } from '@/components/ProductionLogger';
 
 interface KBFile {
   id: string;
@@ -38,7 +39,7 @@ const KnowledgeBaseManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching files:', error);
+        logger.error('Error fetching files:', error);
         toast({
           title: "Error",
           description: "Failed to fetch files",
@@ -64,7 +65,7 @@ const KnowledgeBaseManager = () => {
         pendingFiles
       });
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +126,7 @@ const KnowledgeBaseManager = () => {
 
       fetchFiles();
     } catch (error) {
-      console.error('Error deleting file:', error);
+      logger.error('Error deleting file:', error);
       toast({
         title: "Error",
         description: "Failed to delete file",
@@ -167,7 +168,7 @@ const KnowledgeBaseManager = () => {
 
       fetchFiles();
     } catch (error) {
-      console.error('Error triggering processing:', error);
+      logger.error('Error triggering processing:', error);
       toast({
         title: "Error",
         description: "Failed to trigger processing",
