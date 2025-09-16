@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      document_relations: {
+        Row: {
+          created_at: string | null
+          dst_id: number
+          id: number
+          rel_type: string
+          src_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          dst_id: number
+          id?: number
+          rel_type: string
+          src_id: number
+        }
+        Update: {
+          created_at?: string | null
+          dst_id?: number
+          id?: number
+          rel_type?: string
+          src_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_relations_dst_id_fkey"
+            columns: ["dst_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_relations_src_id_fkey"
+            columns: ["src_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           article_no: string | null
@@ -279,6 +318,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apym: {
+        Args: { md: Json }
+        Returns: string
+      }
       ar_tsv: {
         Args: { p_article?: string; p_content: string; p_title?: string }
         Returns: unknown
@@ -286,6 +329,10 @@ export type Database = {
       arabic_normalize: {
         Args: { p: string }
         Returns: string
+      }
+      article_num: {
+        Args: { md: Json }
+        Returns: number
       }
       binary_quantize: {
         Args: { "": string } | { "": unknown }
@@ -299,6 +346,10 @@ export type Database = {
         Args: { p: string }
         Returns: string
       }
+      coerce_ym: {
+        Args: { p: string }
+        Returns: string
+      }
       compute_law_key: {
         Args: { p: Json }
         Returns: string
@@ -307,6 +358,10 @@ export type Database = {
         Args: { p: Json; p_article: string }
         Returns: string
       }
+      effective_at: {
+        Args: { as_of_ym: string; md: Json }
+        Returns: boolean
+      }
       extract_article_label: {
         Args: { p: string }
         Returns: string
@@ -314,6 +369,10 @@ export type Database = {
       extract_article_num: {
         Args: { p: string }
         Returns: number
+      }
+      get_law_key: {
+        Args: { md: Json }
+        Returns: string
       }
       get_users_with_roles: {
         Args: Record<PropertyKey, never>
@@ -374,6 +433,10 @@ export type Database = {
       ingest_relations_for_document: {
         Args: { p_document_id: number }
         Returns: undefined
+      }
+      inverse_rel_type: {
+        Args: { t: string }
+        Returns: string
       }
       ivfflat_bit_support: {
         Args: { "": unknown }
@@ -474,6 +537,7 @@ export type Database = {
       }
       match_with_relations: {
         Args: {
+          as_of?: string
           filter?: Json
           hops?: number
           match_count?: number
@@ -484,17 +548,24 @@ export type Database = {
           content: string
           id: number
           metadata: Json
-          similarity: number
-          via_relation: boolean
+          score: number
         }[]
       }
       month_le: {
         Args: { a: string; b: string }
         Returns: boolean
       }
+      pick_target_chunk: {
+        Args: { art_num: number; doc_key: string }
+        Returns: number
+      }
       promote_user_to_admin: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      rebuild_relations_for_file: {
+        Args: { p_file: string; prefer_article_match?: boolean }
+        Returns: number
       }
       remove_admin_role: {
         Args: { target_user_id: string }
@@ -502,6 +573,18 @@ export type Database = {
       }
       resolve_document_relations: {
         Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      resolve_document_relations_from_lineage: {
+        Args: { p_file: string; prefer_article_match?: boolean }
+        Returns: number
+      }
+      resolve_document_relations_from_relations: {
+        Args: { p_file: string }
+        Returns: number
+      }
+      safe_int: {
+        Args: { p: string }
         Returns: number
       }
       semantic_filter_holds: {
@@ -528,6 +611,10 @@ export type Database = {
       }
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
+        Returns: number
+      }
+      status_rank: {
+        Args: { p: string }
         Returns: number
       }
       stitch_orphan_prefaces: {
@@ -584,6 +671,10 @@ export type Database = {
       vector_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      version_order_key: {
+        Args: { as_of_ym: string; created_at: string; md: Json }
+        Returns: string
       }
     }
     Enums: {
