@@ -6,8 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AdminPanelV2 from "./pages/AdminPanelV2";
+import LazyAuth from "./pages/LazyAuth";
+import LazyAdminPanel from "./pages/LazyAdminPanel";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
@@ -29,8 +29,8 @@ const AppContent = () => {
         <BrowserRouter>
          <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<AdminPanelV2 />} />
+           <Route path="/auth" element={<LazyAuth />} />
+           <Route path="/admin" element={<LazyAdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
           </Routes>

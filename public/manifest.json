@@ -1,0 +1,20 @@
+{
+  "name": "Mantooq AI - مساعد ذكي للمناقصات القطرية",
+  "short_name": "Mantooq AI",
+  "description": "مساعدك الذكي للحصول على معلومات دقيقة عن المناقصات والقوانين القطرية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "orientation": "portrait-primary"
+}

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/components/ProductionLogger';
 
 interface AuthContextType {
   user: User | null;
@@ -55,21 +56,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkUserRoles = async (userId: string) => {
     try {
-      console.log('🔍 Checking user roles for user:', userId);
+      logger.log('🔍 Checking user roles for user:', userId);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId);
       
-      console.log('📊 User roles check result:', { 
+      logger.log('📊 User roles check result:', { 
         userId, 
         data, 
         error: error?.message || null
       });
       
       if (error) {
-        console.error('❌ Error checking user roles:', error);
+        logger.error('❌ Error checking user roles:', error);
         setIsAdmin(false);
         setIsSuperAdmin(false);
         return;
@@ -82,14 +83,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(hasAdmin || hasSuperAdmin); // Super admin has admin privileges
       setIsSuperAdmin(hasSuperAdmin);
       
-      console.log('✅ User roles:', { 
+      logger.log('✅ User roles:', { 
         roles, 
         isAdmin: hasAdmin || hasSuperAdmin, 
         isSuperAdmin: hasSuperAdmin 
       });
       
     } catch (error) {
-      console.error('💥 Exception while checking user roles:', error);
+      logger.error('💥 Exception while checking user roles:', error);
       setIsAdmin(false);
       setIsSuperAdmin(false);
     }
