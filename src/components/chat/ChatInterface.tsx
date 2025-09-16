@@ -10,7 +10,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from './AdminUpload';
-import { ConnectionDebugIndicator } from './ConnectionDebugIndicator';
 import { useEnhancedRealtimeSubscription } from '@/hooks/useEnhancedRealtimeSubscription';
 import { useNavigate } from 'react-router-dom';
 import { logger } from '@/components/ProductionLogger';
@@ -305,15 +304,7 @@ export const ChatInterface: React.FC = () => {
         )}
         
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle>Chat Assistant</CardTitle>
-            <ConnectionDebugIndicator
-              connectionHealth={connectionHealth}
-              retryCount={retryCount}
-              onForceRefresh={forceRefresh}
-              onReconnect={reconnect}
-            />
-          </div>
+          <CardTitle>Chat Assistant</CardTitle>
         </CardHeader>
 
         <ScrollArea className="flex-1 p-4">

@@ -8,8 +8,6 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
-import { EnhancedConnectionStatus } from './EnhancedConnectionStatus';
-import { EnhancedMessageRecovery } from './EnhancedMessageRecovery';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -461,18 +459,9 @@ const MultiChatInterface = memo(() => {
         {/* Header with tabs and connection status */}
         <div className="border-b bg-card/50 backdrop-blur-sm">
           <div className="p-4 pb-0">
-            <div className="flex items-center justify-between">
-              <h1 className={`text-xl font-semibold ${isMobile ? 'ml-16' : ''}`}>
-                {t('chat.assistant')}
-              </h1>
-              <EnhancedConnectionStatus
-                connectionHealth={connectionHealth}
-                retryCount={retryCount}
-                onReconnect={reconnect}
-                onForceRefresh={forceRefresh}
-                className="text-sm"
-              />
-            </div>
+            <h1 className={`text-xl font-semibold ${isMobile ? 'ml-16' : ''}`}>
+              {t('chat.assistant')}
+            </h1>
           </div>
           
           <ImprovedConversationTabs
@@ -532,18 +521,6 @@ const MultiChatInterface = memo(() => {
                     conversationId={loadingState.conversationId || activeTab.conversation.id}
                     onRetry={handleRetry}
                     onTimeout={handleTimeout}
-                  />
-                )}
-                
-                {/* Enhanced Message Recovery Component - only show when connection issues detected */}
-                {activeTab && activeTab.conversation.id && user && (
-                  <EnhancedMessageRecovery
-                    conversationId={activeTab.conversation.id}
-                    userId={user.id}
-                    lastMessageId={activeTab.messages[activeTab.messages.length - 1]?.id}
-                    connectionHealth={connectionHealth}
-                    onMessagesRecovered={handleMessagesRecovered}
-                    onForceRefresh={forceRefresh}
                   />
                 )}
                 
