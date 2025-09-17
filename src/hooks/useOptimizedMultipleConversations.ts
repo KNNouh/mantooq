@@ -70,9 +70,14 @@ export function useOptimizedMultipleConversations(
 
   // Handle incoming realtime messages with improved deduplication and loading sync
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
+    console.log('🔄 handleRealtimeMessage called with:', newMessage.role, newMessage.content?.slice(0, 50) + '...', 'conversation:', newMessage.conversation_id);
+    
     setTabs(prev => {
+      console.log('📋 Current tabs count:', prev.length, 'Active tab:', activeTabId);
       const updatedTabs = prev.map(tab => {
         if (tab.conversation.id === newMessage.conversation_id) {
+          console.log('✅ Found matching tab for conversation:', newMessage.conversation_id);
+          
           // Enhanced duplicate check - check both ID and temp messages
           const messageExists = tab.messages.some(msg => 
             msg.id === newMessage.id || 
@@ -80,6 +85,7 @@ export function useOptimizedMultipleConversations(
           );
           
           if (messageExists) {
+            console.log('🔄 Replacing temp message with real one:', newMessage.id);
             // Replace temp message with real one
             const updatedMessages = tab.messages.map(msg => 
               msg.id.startsWith('temp-') && msg.content === newMessage.content && msg.role === newMessage.role 
@@ -95,6 +101,7 @@ export function useOptimizedMultipleConversations(
             };
           }
           
+          console.log('📝 Adding new message to tab, current messages:', tab.messages.length);
           // Add new message
           const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -111,12 +118,14 @@ export function useOptimizedMultipleConversations(
         return tab;
       });
 
+      console.log('📊 Updated tabs processed');
       return updatedTabs;
     });
 
     // Clear loading state for assistant messages only if it matches the conversation
     if (newMessage.role === 'assistant' && 
         (loadingState.conversationId === newMessage.conversation_id || !loadingState.conversationId)) {
+      console.log('🔄 Clearing loading state for assistant message');
       setLoadingState({ isLoading: false });
     }
   }, [activeTabId, loadingState.conversationId]);

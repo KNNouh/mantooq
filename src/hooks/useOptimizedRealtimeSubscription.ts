@@ -43,6 +43,7 @@ export function useOptimizedRealtimeSubscription({
     setRetryCount(attempt);
     
     const channelName = `messages-${userId}-${Date.now()}`;
+    console.log('🔌 Setting up realtime subscription for user:', userId, 'channel:', channelName);
     
     const channel = supabase
       .channel(channelName)
@@ -55,14 +56,17 @@ export function useOptimizedRealtimeSubscription({
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log('📨 Realtime message received:', payload);
           const newMessage = payload.new as Message;
           
           // Simple duplicate prevention
           if (newMessage.id === lastMessageId.current) {
+            console.log('🚫 Duplicate message detected, skipping:', newMessage.id);
             return;
           }
           
           lastMessageId.current = newMessage.id;
+          console.log('✅ Processing new message:', newMessage.role, newMessage.content?.slice(0, 50) + '...');
           
           try {
             messageHandlerRef.current(newMessage);
@@ -72,6 +76,7 @@ export function useOptimizedRealtimeSubscription({
         }
       )
       .subscribe((status) => {
+        console.log('📡 Realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
           setRetryCount(0);
