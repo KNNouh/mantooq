@@ -42,7 +42,7 @@ export function useOptimizedRealtimeSubscription({
     setConnectionStatus('connecting');
     setRetryCount(attempt);
     
-    const channelName = `messages-${userId}-${Date.now()}`;
+    const channelName = `messages-${userId}`;
     console.log('🔌 Setting up realtime subscription for user:', userId, 'channel:', channelName);
     
     const channel = supabase

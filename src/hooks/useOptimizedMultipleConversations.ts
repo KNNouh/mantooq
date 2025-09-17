@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedRealtimeSubscription } from './useOptimizedRealtimeSubscription';
 import { useStableLoadingState } from './useStableLoadingState';
@@ -66,7 +66,8 @@ export function useOptimizedMultipleConversations(
   const [loading, setLoading] = useState(false);
   
   // Use stable loading state to prevent race conditions
-  const { loadingState, setLoadingState, clearLoadingState } = useStableLoadingState();
+  const { loadingState, setLoadingState: setLoadingStateInternal, clearLoadingState } = useStableLoadingState();
+  const pollingRef = useRef<NodeJS.Timeout>();
 
   // Handle incoming realtime messages with improved deduplication and loading sync
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
@@ -126,9 +127,74 @@ export function useOptimizedMultipleConversations(
     if (newMessage.role === 'assistant' && 
         (loadingState.conversationId === newMessage.conversation_id || !loadingState.conversationId)) {
       console.log('🔄 Clearing loading state for assistant message');
+      stopPolling();
       setLoadingState({ isLoading: false });
     }
   }, [activeTabId, loadingState.conversationId]);
+
+  // Polling fallback for when realtime fails or during loading states
+  const startPolling = useCallback((conversationId: string) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+    
+    console.log('🔄 Starting polling fallback for conversation:', conversationId);
+    pollingRef.current = setInterval(async () => {
+      try {
+        const { data: messages, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        // Update messages for this conversation
+        setTabs(prev => prev.map(tab => {
+          if (tab.conversation.id === conversationId) {
+            const existingIds = new Set(tab.messages.map(m => m.id));
+            const newMessages = messages?.filter(m => !existingIds.has(m.id)) || [];
+            
+            if (newMessages.length > 0) {
+              console.log('📨 Polling found new messages:', newMessages.length);
+              const updatedMessages = [...tab.messages, ...newMessages]
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+              
+              return {
+                ...tab,
+                messages: updatedMessages,
+                unreadCount: tab.id !== activeTabId ? tab.unreadCount + newMessages.length : tab.unreadCount
+              };
+            }
+          }
+          return tab;
+        }));
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 3000);
+  }, [userId, activeTabId]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = undefined;
+      console.log('⏹️ Stopped polling');
+    }
+  }, []);
+
+  const setLoadingState = useCallback((state: LoadingState) => {
+    setLoadingStateInternal(state);
+    
+    // Start polling when loading begins
+    if (state.isLoading && state.conversationId) {
+      console.log('🔄 Starting polling for loading conversation:', state.conversationId);
+      startPolling(state.conversationId);
+    } else {
+      stopPolling();
+    }
+  }, [startPolling, stopPolling, setLoadingStateInternal]);
 
   // Optimized realtime subscription - no backup polling or heartbeat
   const { connectionStatus, retryCount, reconnect, isConnected } = useOptimizedRealtimeSubscription({
@@ -498,8 +564,16 @@ export function useOptimizedMultipleConversations(
       setTabs([]);
       setActiveTabId(null);
       clearLoadingState();
+      stopPolling();
     }
-  }, [userId, loadConversations, clearLoadingState]);
+  }, [userId, loadConversations, clearLoadingState, stopPolling]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, [stopPolling]);
 
   const memoizedReturn = useMemo(() => ({
     tabs,
