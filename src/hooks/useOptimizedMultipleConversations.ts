@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useEnhancedRealtimeSubscription } from './useEnhancedRealtimeSubscription';
-import { useConversationPersistence } from './useConversationPersistence';
+import { useOptimizedRealtimeSubscription } from './useOptimizedRealtimeSubscription';
 
 interface Message {
   id: string;
@@ -29,30 +28,18 @@ interface ConversationTab {
 interface LoadingState {
   isLoading: boolean;
   conversationId?: string;
-  logId?: string;
 }
 
-interface ConnectionHealth {
-  status: 'disconnected' | 'connecting' | 'connected' | 'error' | 'degraded';
-  quality: number;
-  latency: number;
-  lastHeartbeat: number;
-  consecutiveFailures: number;
-}
-
-interface UseImprovedMultipleConversationsReturn {
+interface UseOptimizedMultipleConversationsReturn {
   tabs: ConversationTab[];
   activeTabId: string | null;
   conversations: Conversation[];
   loading: boolean;
   loadingState: LoadingState;
-  maxTabs: number;
-  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' | 'degraded';
-  connectionHealth: ConnectionHealth;
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
   retryCount: number;
   isConnected: boolean;
   reconnect: () => void;
-  forceRefresh: () => void;
   loadConversations: () => Promise<void>;
   openConversationInTab: (conversation: Conversation) => void;
   closeTab: (tabId: string) => void;
@@ -66,38 +53,32 @@ interface UseImprovedMultipleConversationsReturn {
 }
 
 const MAX_TABS = 3;
+const STORAGE_KEY_PREFIX = 'chat_state';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export function useImprovedMultipleConversations(
+export function useOptimizedMultipleConversations(
   userId: string | null
-): UseImprovedMultipleConversationsReturn {
+): UseOptimizedMultipleConversationsReturn {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [tabs, setTabs] = useState<ConversationTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false });
 
-  // Initialize persistence hooks
-  const { saveState, loadState, createSnapshot, refreshState } = useConversationPersistence(userId);
-
-  // Clear loading state helper
   const clearLoadingState = useCallback(() => {
     setLoadingState({ isLoading: false });
   }, []);
 
-  // Handle incoming realtime messages with improved reliability
+  // Handle incoming realtime messages
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
-    console.log('📨 Processing realtime message for all tabs:', newMessage);
-
     setTabs(prev => {
       let wasUpdated = false;
       const updatedTabs = prev.map(tab => {
-        // Check if this message belongs to this tab's conversation
         if (tab.conversation.id === newMessage.conversation_id) {
-          // Simple ID-based duplicate check
+          // Simple duplicate check
           const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
           
           if (messageExists) {
-            console.log('🔄 Duplicate message detected, skipping:', newMessage.id);
             return tab;
           }
           
@@ -105,13 +86,11 @@ export function useImprovedMultipleConversations(
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           );
           
-          console.log(`✅ Added message to tab ${tab.id} (${tab.conversation.title}):`, newMessage.content.slice(0, 50));
           wasUpdated = true;
           
           return {
             ...tab,
             messages: updatedMessages,
-            // Only increment unread for assistant messages in non-active tabs
             unreadCount: tab.id !== activeTabId && newMessage.role === 'assistant' 
               ? tab.unreadCount + 1 
               : tab.unreadCount
@@ -120,26 +99,17 @@ export function useImprovedMultipleConversations(
         return tab;
       });
 
-      if (wasUpdated) {
-        console.log('🔄 Tabs updated with new message');
-      } else {
-        console.log('⚠️ Message conversation not found in any open tab:', newMessage.conversation_id);
-        // Log all open conversation IDs for debugging
-        console.log('📂 Open conversation IDs:', prev.map(tab => ({ id: tab.conversation.id, title: tab.conversation.title })));
-      }
-
       return updatedTabs;
     });
 
-    // Clear loading state for assistant messages immediately after state update
+    // Clear loading state for assistant messages
     if (newMessage.role === 'assistant') {
-      console.log('🛑 Assistant message received, clearing loading state');
       setLoadingState({ isLoading: false });
     }
   }, [activeTabId]);
 
-  // Set up enhanced realtime subscription with connection monitoring
-  const { connectionStatus, connectionHealth, retryCount, reconnect, forceRefresh: realtimeRefresh, isConnected } = useEnhancedRealtimeSubscription({
+  // Optimized realtime subscription - no backup polling or heartbeat
+  const { connectionStatus, retryCount, reconnect, isConnected } = useOptimizedRealtimeSubscription({
     userId,
     onMessage: handleRealtimeMessage,
     enabled: !!userId
@@ -147,6 +117,21 @@ export function useImprovedMultipleConversations(
 
   const loadConversations = useCallback(async () => {
     if (!userId) return;
+
+    // Check cache first
+    const cacheKey = `${STORAGE_KEY_PREFIX}_conversations_${userId}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          setConversations(data);
+          return;
+        }
+      } catch (error) {
+        // Invalid cache, continue with fresh fetch
+      }
+    }
 
     setLoading(true);
     try {
@@ -157,7 +142,15 @@ export function useImprovedMultipleConversations(
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      const conversationsData = data || [];
+      setConversations(conversationsData);
+      
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({
+        data: conversationsData,
+        timestamp: Date.now()
+      }));
     } catch (error) {
       console.error('Error loading conversations:', error);
       setConversations([]);
@@ -165,19 +158,6 @@ export function useImprovedMultipleConversations(
       setLoading(false);
     }
   }, [userId]);
-
-  // Enhanced force refresh that includes conversation recovery
-  const forceRefresh = useCallback(async () => {
-    console.log('🔄 Force refreshing with conversation recovery...');
-    
-    // First trigger realtime refresh
-    realtimeRefresh();
-    
-    // Then reload conversations from database
-    await loadConversations();
-    
-    console.log('📝 Force refresh completed, conversations reloaded');
-  }, [realtimeRefresh, loadConversations]);
 
   const loadMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
     try {
@@ -196,20 +176,20 @@ export function useImprovedMultipleConversations(
   }, []);
 
   const openConversationInTab = useCallback(async (conversation: Conversation) => {
-    // Check if conversation is already open in a tab
+    // Check if conversation is already open
     const existingTab = tabs.find(tab => tab.conversation.id === conversation.id);
     if (existingTab) {
       setActiveTabId(existingTab.id);
       return;
     }
 
-    // Check if we've reached max tabs and close oldest inactive tab
+    // Close oldest tab if at max capacity
     if (tabs.length >= MAX_TABS) {
       const oldestInactiveTab = tabs.find(tab => tab.id !== activeTabId);
       if (oldestInactiveTab) {
         setTabs(prev => prev.filter(tab => tab.id !== oldestInactiveTab.id));
       } else {
-        return; // All tabs are active, can't open new one
+        return;
       }
     }
 
@@ -238,7 +218,6 @@ export function useImprovedMultipleConversations(
     setTabs(prev => {
       const updatedTabs = prev.filter(tab => tab.id !== tabId);
       
-      // If we're closing the active tab, switch to another tab
       if (activeTabId === tabId) {
         const newActiveTab = updatedTabs.length > 0 ? updatedTabs[0].id : null;
         setActiveTabId(newActiveTab);
@@ -250,7 +229,7 @@ export function useImprovedMultipleConversations(
 
   const setActiveTab = useCallback((tabId: string) => {
     setActiveTabId(tabId);
-    // Reset unread count for the active tab
+    // Reset unread count
     setTabs(prev => prev.map(tab => 
       tab.id === tabId 
         ? { ...tab, unreadCount: 0 }
@@ -262,12 +241,10 @@ export function useImprovedMultipleConversations(
     if (!userId) return;
 
     try {
-      console.log('💾 Adding message to database...');
-      
-      // Immediately add user message to local state for instant UI update
+      // Optimistic UI update for user messages
       if (role === 'user') {
         const tempMessage = {
-          id: `temp-${Date.now()}`, // Temporary ID
+          id: `temp-${Date.now()}`,
           conversation_id: conversationId,
           content,
           role,
@@ -301,7 +278,7 @@ export function useImprovedMultipleConversations(
 
       if (error) throw error;
 
-      // Replace temporary message with real one for user messages
+      // Replace temp message with real one
       if (role === 'user' && data) {
         setTabs(prevTabs => 
           prevTabs.map(tab => {
@@ -317,12 +294,10 @@ export function useImprovedMultipleConversations(
           })
         );
       }
-
-      console.log('✅ Message added to database successfully');
     } catch (error) {
-      console.error('❌ Failed to add message:', error);
+      console.error('Failed to add message:', error);
       
-      // Remove temporary message on error
+      // Remove temp message on error
       if (role === 'user') {
         setTabs(prevTabs => 
           prevTabs.map(tab => {
@@ -345,7 +320,7 @@ export function useImprovedMultipleConversations(
     if (!userId) throw new Error('User not authenticated');
 
     try {
-      // Check current conversation count
+      // Check conversation limit
       const { count, error: countError } = await supabase
         .from('conversations')
         .select('*', { count: 'exact', head: true })
@@ -368,7 +343,9 @@ export function useImprovedMultipleConversations(
 
       if (convError) throw convError;
       
-      // Refresh conversations list
+      // Refresh conversations and clear cache
+      const cacheKey = `${STORAGE_KEY_PREFIX}_conversations_${userId}`;
+      localStorage.removeItem(cacheKey);
       await loadConversations();
       
       return convData.id;
@@ -410,14 +387,16 @@ export function useImprovedMultipleConversations(
 
       if (error) throw error;
 
-      // Remove conversation from local state
+      // Clear cache and update state
+      const cacheKey = `${STORAGE_KEY_PREFIX}_conversations_${userId}`;
+      localStorage.removeItem(cacheKey);
+      
       setConversations(prev => prev.filter(conv => conv.id !== conversationId));
 
-      // Close any tabs that were using this conversation
+      // Close related tabs
       setTabs(prev => {
         const filteredTabs = prev.filter(tab => tab.conversation.id !== conversationId);
         
-        // If we removed the active tab, switch to another tab or clear active
         if (activeTabId && prev.find(tab => tab.id === activeTabId)?.conversation.id === conversationId) {
           const newActiveTab = filteredTabs.length > 0 ? filteredTabs[0].id : null;
           setActiveTabId(newActiveTab);
@@ -432,53 +411,44 @@ export function useImprovedMultipleConversations(
     }
   }, [userId, activeTabId]);
 
-  // Auto-save state every 30 seconds and on changes with periodic refresh
-  useEffect(() => {
-    if (userId && tabs.length > 0) {
-      saveState(tabs, activeTabId);
-    }
-  }, [tabs, activeTabId, userId, saveState]);
-
-  // Periodic state refresh to prevent expiration
+  // Debounced state persistence - only save every 5 minutes or on major changes
   useEffect(() => {
     if (!userId || tabs.length === 0) return;
 
-    const refreshInterval = setInterval(() => {
-      console.log('🔄 Refreshing state to prevent expiration');
-      refreshState(tabs, activeTabId);
-    }, 20 * 60 * 1000); // Refresh every 20 minutes
+    const saveState = () => {
+      const state = { tabs, activeTabId, timestamp: Date.now() };
+      const stateKey = `${STORAGE_KEY_PREFIX}_state_${userId}`;
+      try {
+        localStorage.setItem(stateKey, JSON.stringify(state));
+      } catch (error) {
+        console.error('Failed to save state:', error);
+      }
+    };
 
-    return () => clearInterval(refreshInterval);
-  }, [userId, tabs, activeTabId, refreshState]);
+    const timeoutId = setTimeout(saveState, 5 * 60 * 1000); // Save every 5 minutes
+    return () => clearTimeout(timeoutId);
+  }, [userId, tabs, activeTabId]);
 
-  // Create snapshots every 2 minutes
-  useEffect(() => {
-    if (!userId || tabs.length === 0) return;
-
-    const snapshotInterval = setInterval(() => {
-      createSnapshot(tabs, activeTabId);
-    }, 120000); // 2 minutes
-
-    return () => clearInterval(snapshotInterval);
-  }, [userId, tabs, activeTabId, createSnapshot]);
-
-  // Load conversations and restore state when userId changes with recovery support
+  // Load conversations and restore state on userId change
   useEffect(() => {
     if (userId) {
       loadConversations();
       
-      // Try to restore state from localStorage
-      const savedState = loadState();
-      if (savedState) {
-        if (savedState.expired) {
-          console.log('🔄 State expired, recovering recent conversations...');
-          // State expired, we'll let the newly loaded conversations populate naturally
-          // This provides a graceful recovery instead of empty tabs
-        } else if (savedState.tabs && savedState.tabs.length > 0) {
-          console.log('🔄 Restoring conversation state from localStorage');
-          setTabs(savedState.tabs);
-          setActiveTabId(savedState.activeTabId);
+      // Try to restore state
+      const stateKey = `${STORAGE_KEY_PREFIX}_state_${userId}`;
+      try {
+        const saved = localStorage.getItem(stateKey);
+        if (saved) {
+          const { tabs: savedTabs, activeTabId: savedActiveTabId, timestamp } = JSON.parse(saved);
+          
+          // Only restore if less than 24 hours old
+          if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+            setTabs(savedTabs || []);
+            setActiveTabId(savedActiveTabId);
+          }
         }
+      } catch (error) {
+        console.error('Failed to restore state:', error);
       }
     } else {
       setConversations([]);
@@ -486,7 +456,7 @@ export function useImprovedMultipleConversations(
       setActiveTabId(null);
       clearLoadingState();
     }
-  }, [userId, loadConversations, clearLoadingState, loadState]);
+  }, [userId, loadConversations, clearLoadingState]);
 
   const memoizedReturn = useMemo(() => ({
     tabs,
@@ -494,13 +464,10 @@ export function useImprovedMultipleConversations(
     conversations,
     loading,
     loadingState,
-    maxTabs: MAX_TABS,
     connectionStatus,
-    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
-    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -518,11 +485,9 @@ export function useImprovedMultipleConversations(
     loading,
     loadingState,
     connectionStatus,
-    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
-    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,

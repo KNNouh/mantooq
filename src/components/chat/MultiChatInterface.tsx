@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Settings, LogOut, Trash2, Send, Menu, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
-import { useImprovedMultipleConversations } from '@/hooks/useImprovedMultipleConversations';
+import { useOptimizedMultipleConversations } from '@/hooks/useOptimizedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import { ImprovedConversationTabs } from './ImprovedConversationTabs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,7 +13,7 @@ import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
-import ImprovedChatLoadingIndicator from './ImprovedChatLoadingIndicator';
+import OptimizedChatLoadingIndicator from './OptimizedChatLoadingIndicator';
 import { DeleteConversationDialog } from './DeleteConversationDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -50,13 +50,10 @@ const MultiChatInterface = memo(() => {
     conversations,
     loading: conversationsLoading,
     loadingState,
-    maxTabs,
     connectionStatus,
-    connectionHealth,
     retryCount,
     isConnected,
     reconnect,
-    forceRefresh,
     loadConversations,
     openConversationInTab,
     closeTab,
@@ -67,7 +64,12 @@ const MultiChatInterface = memo(() => {
     deleteConversation,
     setLoadingState,
     clearLoadingState
-  } = useImprovedMultipleConversations(user?.id || null);
+  } = useOptimizedMultipleConversations(user?.id || null);
+
+  // Add missing constants for backwards compatibility  
+  const maxTabs = 3;
+  const connectionHealth = { status: connectionStatus, quality: 100, latency: 0, lastHeartbeat: Date.now(), consecutiveFailures: 0 };
+  const forceRefresh = () => { reconnect(); };
 
   // Get active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -241,14 +243,11 @@ const MultiChatInterface = memo(() => {
           throw new Error(error.message || 'Failed to trigger AI response');
         }
 
-        // Update loading state with log ID if available
-        if (webhookResponse?.logId) {
-          setLoadingState({ 
-            isLoading: true, 
-            conversationId,
-            logId: webhookResponse.logId 
-          });
-        }
+        // Update loading state  
+        setLoadingState({ 
+          isLoading: true, 
+          conversationId
+        });
 
         logger.log('✅ AI response triggered successfully');
         
@@ -517,7 +516,7 @@ const MultiChatInterface = memo(() => {
                   ))
                 )}
                 {loadingState.isLoading && activeTab && (
-                  <ImprovedChatLoadingIndicator
+                  <OptimizedChatLoadingIndicator
                     conversationId={loadingState.conversationId || activeTab.conversation.id}
                     onRetry={handleRetry}
                     onTimeout={handleTimeout}

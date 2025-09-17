@@ -10,7 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AdminUpload } from './AdminUpload';
-import { useEnhancedRealtimeSubscription } from '@/hooks/useEnhancedRealtimeSubscription';
+import { useOptimizedRealtimeSubscription } from '@/hooks/useOptimizedRealtimeSubscription';
 import { useNavigate } from 'react-router-dom';
 import { logger } from '@/components/ProductionLogger';
 
@@ -42,13 +42,11 @@ export const ChatInterface: React.FC = () => {
   const [showUpload, setShowUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Enhanced real-time subscription with debug capabilities
   const { 
-    connectionHealth, 
+    connectionStatus, 
     retryCount, 
-    forceRefresh, 
     reconnect 
-  } = useEnhancedRealtimeSubscription({
+  } = useOptimizedRealtimeSubscription({
     userId: user?.id || null,
     onMessage: (newMessage: Message) => {
       logger.log('📨 Message received via subscription:', newMessage);
