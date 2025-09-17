@@ -73,6 +73,14 @@ const translations = {
     'about.meaning.clarity': 'الوضوح: عرض النصوص القانونية كما وردت في مصادرها الرسمية.',
     'about.meaning.accuracy': 'الدقة: الالتزام بالتفسير الصحيح المتفق مع مراد المشرّع.',
     'about.meaning.reliability': 'الموثوقية: الاعتماد على المصادر الرسمية والمعتمدة في دولة قطر.',
+
+    // Realtime connection status
+    'realtime.connected': 'متصل',
+    'realtime.connecting': 'جاري الاتصال...',
+    'realtime.disconnected': 'منقطع',
+    'realtime.error': 'خطأ في الاتصال',
+    'realtime.retry': 'محاولة',
+    'realtime.reconnect': 'إعادة الاتصال',
     'about.commitment': 'وعليه، فإن اسم (منطق) يعبر عن التزام المنصة بتقديم المعرفة القانونية وفق أعلى معايير النزاهة والشفافية، وبما يسهم في دعم الجهات الحكومية وأعضاء لجان المناقصات في أداء مهامهم بكفاءة وامتثال تام لأحكام القانون.',
     'about.features_title': 'مزايا المنصة',
     'about.features.ui': 'واجهة استخدام مبسطة باللغة العربية.',
@@ -136,6 +144,14 @@ const translations = {
     
     // Footer
     'footer.copyright': '© 2024 Mantooq. Specialized in Qatari Tender Laws.',
+    
+    // Realtime connection status
+    'realtime.connected': 'Connected',
+    'realtime.connecting': 'Connecting...',
+    'realtime.disconnected': 'Disconnected', 
+    'realtime.error': 'Connection Error',
+    'realtime.retry': 'Attempt',
+    'realtime.reconnect': 'Reconnect',
     
     // Chat Interface
     'chat.history': 'Chat History',

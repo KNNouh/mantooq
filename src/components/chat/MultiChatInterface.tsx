@@ -8,6 +8,7 @@ import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useOptimizedMultipleConversations } from '@/hooks/useOptimizedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
 import OptimizedConversationTabs from './OptimizedConversationTabs';
+import { ConnectionStatus } from './ConnectionStatus';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -465,9 +466,16 @@ const MultiChatInterface = memo(() => {
         {/* Header with tabs and connection status */}
         <div className="border-b bg-card/50 backdrop-blur-sm">
           <div className="p-4 pb-0">
-            <h1 className={`text-xl font-semibold ${isMobile ? 'ml-16' : ''}`}>
-              {t('chat.assistant')}
-            </h1>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className={`text-xl font-semibold ${isMobile ? 'ml-16' : ''}`}>
+                {t('chat.assistant')}
+              </h1>
+              <ConnectionStatus
+                status={connectionStatus}
+                retryCount={retryCount}
+                onReconnect={reconnect}
+              />
+            </div>
           </div>
           
           <OptimizedConversationTabs
