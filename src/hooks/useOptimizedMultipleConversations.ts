@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedRealtimeSubscription } from './useOptimizedRealtimeSubscription';
+import { useStableLoadingState } from './useStableLoadingState';
 
 interface Message {
   id: string;
@@ -63,30 +64,41 @@ export function useOptimizedMultipleConversations(
   const [tabs, setTabs] = useState<ConversationTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false });
+  
+  // Use stable loading state to prevent race conditions
+  const { loadingState, setLoadingState, clearLoadingState } = useStableLoadingState();
 
-  const clearLoadingState = useCallback(() => {
-    setLoadingState({ isLoading: false });
-  }, []);
-
-  // Handle incoming realtime messages
+  // Handle incoming realtime messages with improved deduplication and loading sync
   const handleRealtimeMessage = useCallback((newMessage: Message) => {
     setTabs(prev => {
-      let wasUpdated = false;
       const updatedTabs = prev.map(tab => {
         if (tab.conversation.id === newMessage.conversation_id) {
-          // Simple duplicate check
-          const messageExists = tab.messages.some(msg => msg.id === newMessage.id);
+          // Enhanced duplicate check - check both ID and temp messages
+          const messageExists = tab.messages.some(msg => 
+            msg.id === newMessage.id || 
+            (msg.id.startsWith('temp-') && msg.content === newMessage.content && msg.role === newMessage.role)
+          );
           
           if (messageExists) {
-            return tab;
+            // Replace temp message with real one
+            const updatedMessages = tab.messages.map(msg => 
+              msg.id.startsWith('temp-') && msg.content === newMessage.content && msg.role === newMessage.role 
+                ? newMessage 
+                : msg
+            );
+            
+            return {
+              ...tab,
+              messages: updatedMessages.sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            };
           }
           
+          // Add new message
           const updatedMessages = [...tab.messages, newMessage].sort((a, b) => 
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           );
-          
-          wasUpdated = true;
           
           return {
             ...tab,
@@ -102,11 +114,12 @@ export function useOptimizedMultipleConversations(
       return updatedTabs;
     });
 
-    // Clear loading state for assistant messages
-    if (newMessage.role === 'assistant') {
+    // Clear loading state for assistant messages only if it matches the conversation
+    if (newMessage.role === 'assistant' && 
+        (loadingState.conversationId === newMessage.conversation_id || !loadingState.conversationId)) {
       setLoadingState({ isLoading: false });
     }
-  }, [activeTabId]);
+  }, [activeTabId, loadingState.conversationId]);
 
   // Optimized realtime subscription - no backup polling or heartbeat
   const { connectionStatus, retryCount, reconnect, isConnected } = useOptimizedRealtimeSubscription({
@@ -194,6 +207,8 @@ export function useOptimizedMultipleConversations(
     }
 
     const newTabId = `tab-${conversation.id}-${Date.now()}`;
+    
+    // Create and set tab with loading state immediately
     const newTab: ConversationTab = {
       id: newTabId,
       conversation,
@@ -202,16 +217,29 @@ export function useOptimizedMultipleConversations(
       unreadCount: 0
     };
 
+    // Synchronous state updates to prevent race conditions
     setTabs(prev => [...prev, newTab]);
     setActiveTabId(newTabId);
 
-    // Load messages for the tab
-    const messages = await loadMessages(conversation.id);
-    setTabs(prev => prev.map(tab => 
-      tab.id === newTabId 
-        ? { ...tab, messages, loadingMessages: false }
-        : tab
-    ));
+    try {
+      // Load messages for the tab
+      const messages = await loadMessages(conversation.id);
+      
+      // Update tab with messages and clear loading
+      setTabs(prev => prev.map(tab => 
+        tab.id === newTabId 
+          ? { ...tab, messages, loadingMessages: false }
+          : tab
+      ));
+    } catch (error) {
+      console.error('Error loading messages for tab:', error);
+      // Clear loading state even on error
+      setTabs(prev => prev.map(tab => 
+        tab.id === newTabId 
+          ? { ...tab, loadingMessages: false }
+          : tab
+      ));
+    }
   }, [tabs, activeTabId, loadMessages]);
 
   const closeTab = useCallback((tabId: string) => {
@@ -240,11 +268,13 @@ export function useOptimizedMultipleConversations(
   const addMessage = useCallback(async (conversationId: string, role: 'user' | 'assistant', content: string) => {
     if (!userId) return;
 
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    
     try {
-      // Optimistic UI update for user messages
+      // Optimistic UI update for user messages with unique temp ID
       if (role === 'user') {
         const tempMessage = {
-          id: `temp-${Date.now()}`,
+          id: tempId,
           conversation_id: conversationId,
           content,
           role,
@@ -257,7 +287,9 @@ export function useOptimizedMultipleConversations(
             if (tab.conversation.id === conversationId) {
               return {
                 ...tab,
-                messages: [...tab.messages, tempMessage]
+                messages: [...tab.messages, tempMessage].sort((a, b) => 
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
               };
             }
             return tab;
@@ -278,7 +310,7 @@ export function useOptimizedMultipleConversations(
 
       if (error) throw error;
 
-      // Replace temp message with real one
+      // Replace temp message with real one using the specific temp ID
       if (role === 'user' && data) {
         setTabs(prevTabs => 
           prevTabs.map(tab => {
@@ -286,7 +318,9 @@ export function useOptimizedMultipleConversations(
               return {
                 ...tab,
                 messages: tab.messages.map(msg => 
-                  msg.id.startsWith('temp-') ? data : msg
+                  msg.id === tempId ? data : msg
+                ).sort((a, b) => 
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
                 )
               };
             }
@@ -297,14 +331,14 @@ export function useOptimizedMultipleConversations(
     } catch (error) {
       console.error('Failed to add message:', error);
       
-      // Remove temp message on error
+      // Remove specific temp message on error
       if (role === 'user') {
         setTabs(prevTabs => 
           prevTabs.map(tab => {
             if (tab.conversation.id === conversationId) {
               return {
                 ...tab,
-                messages: tab.messages.filter(msg => !msg.id.startsWith('temp-'))
+                messages: tab.messages.filter(msg => msg.id !== tempId)
               };
             }
             return tab;

@@ -18,12 +18,16 @@ const OptimizedChatLoadingIndicator: React.FC<OptimizedChatLoadingIndicatorProps
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimedOut, setIsTimedOut] = useState(false);
 
-  // Simple timer with 30 second timeout (reduced from 90s)
+  // Enhanced timer with proper cleanup and conversation-specific timeout
   useEffect(() => {
+    setElapsedTime(0);
+    setIsTimedOut(false);
+    
     const timer = setInterval(() => {
       setElapsedTime(prev => {
         const newTime = prev + 1;
         
+        // Only timeout if we're still waiting for the same conversation
         if (newTime >= 30) {
           setIsTimedOut(true);
           onTimeout?.();
@@ -34,7 +38,7 @@ const OptimizedChatLoadingIndicator: React.FC<OptimizedChatLoadingIndicatorProps
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [onTimeout]);
+  }, [conversationId, onTimeout]); // Reset when conversation changes
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;

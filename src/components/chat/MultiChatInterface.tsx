@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedAuth } from '@/hooks/useOptimizedAuth';
 import { useOptimizedMultipleConversations } from '@/hooks/useOptimizedMultipleConversations';
 import { MessageSkeleton, ConversationSkeleton } from '@/components/ui/loading-skeleton';
-import { ImprovedConversationTabs } from './ImprovedConversationTabs';
+import OptimizedConversationTabs from './OptimizedConversationTabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/ui/language-switcher';
 import ReactMarkdown from 'react-markdown';
@@ -104,11 +104,15 @@ const MultiChatInterface = memo(() => {
     }
   }, [activeTab, clearLoadingState]);
 
-  // Handle timeout for loading indicator
+  // Handle timeout for loading indicator - only clear if still loading for same conversation
   const handleTimeout = useCallback(() => {
     logger.warn('⚠️ Chat loading timeout');
-    clearLoadingState();
-  }, [clearLoadingState]);
+    
+    // Only clear loading if we're still waiting for the same conversation
+    if (loadingState.isLoading && activeTab) {
+      clearLoadingState();
+    }
+  }, [clearLoadingState, loadingState.isLoading, activeTab]);
 
   const handleDeleteClick = useCallback((conversation: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -179,7 +183,8 @@ const MultiChatInterface = memo(() => {
           // Reload conversations and open the new one
           await loadConversations();
           
-          setTimeout(async () => {
+          // Immediately fetch and open the new conversation
+          try {
             const { data: newConv } = await supabase
               .from('conversations')
               .select('id, title, created_at')
@@ -189,7 +194,9 @@ const MultiChatInterface = memo(() => {
             if (newConv) {
               openConversationInTab(newConv);
             }
-          }, 100);
+          } catch (fetchError) {
+            console.error('Error fetching new conversation:', fetchError);
+          }
         } catch (convError: any) {
           logger.error('Error creating conversation:', convError);
           
@@ -463,7 +470,7 @@ const MultiChatInterface = memo(() => {
             </h1>
           </div>
           
-          <ImprovedConversationTabs
+          <OptimizedConversationTabs
             tabs={tabs}
             activeTabId={activeTabId}
             maxTabs={maxTabs}

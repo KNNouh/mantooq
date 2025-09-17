@@ -48,16 +48,7 @@ export const AdminUpload: React.FC<AdminUploadProps> = ({ onFileUploaded }) => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      setProgress(10);
 
       // Call the admin-upload edge function
       const response = await fetch(
@@ -71,15 +62,13 @@ export const AdminUpload: React.FC<AdminUploadProps> = ({ onFileUploaded }) => {
         }
       );
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Upload failed: ${errorText}`);
       }
 
       const result = await response.json();
+      setProgress(100);
       
       toast({
         title: 'Success',

@@ -59,10 +59,7 @@ export const KnowledgeBaseStats = () => {
 
   useEffect(() => {
     fetchStats();
-    
-    // Refresh stats every 30 seconds
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
+    // Only refresh on component mount, not on intervals
   }, []);
 
   if (loading || !stats) {
