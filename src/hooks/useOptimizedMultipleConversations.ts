@@ -158,6 +158,19 @@ export function useOptimizedMultipleConversations(
             
             if (newMessages.length > 0) {
               console.log('📨 Polling found new messages:', newMessages.length);
+              
+              // Check if any new message is an assistant message
+              const hasAssistantMessage = newMessages.some(msg => msg.role === 'assistant');
+              
+              if (hasAssistantMessage) {
+                console.log('✅ Polling found assistant message - clearing loading state');
+                // Clear loading state if it matches this conversation
+                if (loadingState.conversationId === conversationId || !loadingState.conversationId) {
+                  stopPolling();
+                  setLoadingStateInternal({ isLoading: false });
+                }
+              }
+              
               const updatedMessages = [...tab.messages, ...newMessages]
                 .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
               
@@ -174,7 +187,7 @@ export function useOptimizedMultipleConversations(
         console.error('Polling error:', error);
       }
     }, 3000);
-  }, [userId, activeTabId]);
+  }, [userId, activeTabId, loadingState.conversationId, setLoadingStateInternal]);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
