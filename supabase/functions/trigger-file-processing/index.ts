@@ -95,6 +95,8 @@ Deno.serve(async (req) => {
       fileId: file.id,
       filename: file.filename,
       storagePath: file.storage_path,
+      fileSizeBytes: file.file_size_bytes,
+      status: 'processing',
       requestedBy: user.id,
       timestamp: new Date().toISOString(),
       supabaseUrl: supabaseUrl,
