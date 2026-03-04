@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
 
     let webhookStatus = 'not_sent';
     try {
-      const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d';
+      const webhookUrl = 'https://n8n.srv1034943.hstgr.cloud/webhook/c5aeeb2d-8cae-449d-899c-48b145969c1d';
       const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
