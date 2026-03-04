@@ -180,10 +180,70 @@ Deno.serve(async (req) => {
 
     console.log('File record created:', fileRecord.id)
 
+    // Automatically trigger n8n webhook with full file data
+    const webhookPayload = {
+      fileId: fileRecord.id,
+      filename: sanitizedName,
+      storagePath: uploadData.path,
+      fileSizeBytes: file.size,
+      fileType: file.type || 'unknown',
+      sha256Hash: sha256Hex,
+      status: 'pending',
+      requestedBy: user.id,
+      timestamp: new Date().toISOString(),
+      supabaseUrl: Deno.env.get('SUPABASE_URL'),
+      bucketName: 'kb-raw'
+    };
+
+    console.log('Triggering n8n webhook after upload:', webhookPayload);
+
+    let webhookStatus = 'not_sent';
+    try {
+      const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d';
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(webhookPayload),
+      });
+
+      const responseData = await webhookResponse.text();
+      webhookStatus = webhookResponse.status === 200 ? 'success' : 'failed';
+
+      console.log('n8n webhook response:', { status: webhookResponse.status, response: responseData });
+
+      // Log webhook call
+      await supabase
+        .from('chat_webhook_log')
+        .insert({
+          user_id: user.id,
+          message_content: `File upload webhook triggered for ${sanitizedName}`,
+          status: webhookStatus,
+          webhook_response: {
+            status: webhookResponse.status,
+            response: responseData,
+            payload: webhookPayload,
+            timestamp: new Date().toISOString()
+          }
+        });
+    } catch (webhookError) {
+      console.error('Webhook trigger failed (non-blocking):', webhookError.message);
+      webhookStatus = 'failed';
+
+      await supabase
+        .from('chat_webhook_log')
+        .insert({
+          user_id: user.id,
+          message_content: `File upload webhook failed for ${sanitizedName}`,
+          status: 'failed',
+          error_message: webhookError.message
+        });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       file_id: fileRecord.id,
-      message: 'File uploaded successfully. Use the Process button in File Management to start processing.'
+      webhook_status: webhookStatus,
+      message: 'File uploaded successfully and webhook triggered.'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
