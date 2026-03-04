@@ -129,7 +129,7 @@ export type Database = {
           hash: string | null
           id: number
           metadata: Json
-          ts: unknown | null
+          ts: unknown
         }
         Insert: {
           article_no?: string | null
@@ -140,7 +140,7 @@ export type Database = {
           hash?: string | null
           id?: number
           metadata?: Json
-          ts?: unknown | null
+          ts?: unknown
         }
         Update: {
           article_no?: string | null
@@ -151,7 +151,7 @@ export type Database = {
           hash?: string | null
           id?: number
           metadata?: Json
-          ts?: unknown | null
+          ts?: unknown
         }
         Relationships: []
       }
@@ -318,64 +318,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      apym: {
-        Args: { md: Json }
-        Returns: string
-      }
+      apym: { Args: { md: Json }; Returns: string }
       ar_tsv: {
         Args: { p_article?: string; p_content: string; p_title?: string }
         Returns: unknown
       }
-      arabic_normalize: {
-        Args: { p: string }
-        Returns: string
-      }
-      article_num: {
-        Args: { md: Json }
-        Returns: number
-      }
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
+      arabic_normalize: { Args: { p: string }; Returns: string }
+      article_num: { Args: { md: Json }; Returns: number }
       build_hash_source: {
         Args: { p_content: string; p_norm: string; p_split_params: string }
         Returns: string
       }
-      canonicalize_text: {
-        Args: { p: string }
-        Returns: string
-      }
-      coerce_ym: {
-        Args: { p: string }
-        Returns: string
-      }
-      compute_law_key: {
-        Args: { p: Json }
-        Returns: string
-      }
+      canonicalize_text: { Args: { p: string }; Returns: string }
+      coerce_ym: { Args: { p: string }; Returns: string }
+      compute_law_key: { Args: { p: Json }; Returns: string }
       compute_stable_key: {
         Args: { p: Json; p_article: string }
         Returns: string
       }
-      effective_at: {
-        Args: { as_of_ym: string; md: Json }
-        Returns: boolean
-      }
-      extract_article_label: {
-        Args: { p: string }
-        Returns: string
-      }
-      extract_article_num: {
-        Args: { p: string }
-        Returns: number
-      }
-      get_law_key: {
-        Args: { md: Json }
-        Returns: string
-      }
+      effective_at: { Args: { as_of_ym: string; md: Json }; Returns: boolean }
+      extract_article_label: { Args: { p: string }; Returns: string }
+      extract_article_num: { Args: { p: string }; Returns: number }
+      get_law_key: { Args: { md: Json }; Returns: string }
       get_users_with_roles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -383,26 +349,7 @@ export type Database = {
           user_id: string
         }[]
       }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      has_admin_privileges: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      has_admin_privileges: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -410,54 +357,12 @@ export type Database = {
         }
         Returns: boolean
       }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ilike_unaccent: {
-        Args: { a: string; b: string }
-        Returns: boolean
-      }
+      ilike_unaccent: { Args: { a: string; b: string }; Returns: boolean }
       ingest_relations_for_document: {
         Args: { p_document_id: number }
         Returns: undefined
       }
-      inverse_rel_type: {
-        Args: { t: string }
-        Returns: string
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
-      }
+      inverse_rel_type: { Args: { t: string }; Returns: string }
       match_chunks: {
         Args: {
           lang_pref?: string
@@ -551,10 +456,7 @@ export type Database = {
           score: number
         }[]
       }
-      month_le: {
-        Args: { a: string; b: string }
-        Returns: boolean
-      }
+      month_le: { Args: { a: string; b: string }; Returns: boolean }
       pick_target_chunk: {
         Args: { art_num: number; doc_key: string }
         Returns: number
@@ -571,10 +473,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
-      resolve_document_relations: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      resolve_document_relations: { Args: never; Returns: number }
       resolve_document_relations_from_lineage: {
         Args: { p_file: string; prefer_article_match?: boolean }
         Returns: number
@@ -583,10 +482,7 @@ export type Database = {
         Args: { p_file: string }
         Returns: number
       }
-      safe_int: {
-        Args: { p: string }
-        Returns: number
-      }
+      safe_int: { Args: { p: string }; Returns: number }
       semantic_filter_holds: {
         Args: { article_label: string; f: Json; md: Json }
         Returns: boolean
@@ -595,40 +491,15 @@ export type Database = {
         Args: { p_id: string; p_status: string }
         Returns: undefined
       }
-      simple_tsv: {
-        Args:
-          | { p: string }
-          | { p_article?: string; p_content: string; p_title?: string }
-        Returns: unknown
-      }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      status_rank: {
-        Args: { p: string }
-        Returns: number
-      }
-      stitch_orphan_prefaces: {
-        Args: { p_file: string }
-        Returns: number
-      }
-      unaccent: {
-        Args: { "": string }
-        Returns: string
-      }
-      unaccent_init: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
+      simple_tsv:
+        | { Args: { p: string }; Returns: unknown }
+        | {
+            Args: { p_article?: string; p_content: string; p_title?: string }
+            Returns: unknown
+          }
+      status_rank: { Args: { p: string }; Returns: number }
+      stitch_orphan_prefaces: { Args: { p_file: string }; Returns: number }
+      unaccent: { Args: { "": string }; Returns: string }
       update_processing_progress: {
         Args: {
           p_duration_ms?: number
@@ -647,30 +518,6 @@ export type Database = {
           file_info: Json
           is_valid: boolean
         }[]
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
       }
       version_order_key: {
         Args: { as_of_ym: string; created_at: string; md: Json }
