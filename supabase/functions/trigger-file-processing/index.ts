@@ -95,6 +95,8 @@ Deno.serve(async (req) => {
       fileId: file.id,
       filename: file.filename,
       storagePath: file.storage_path,
+      fileSizeBytes: file.file_size_bytes,
+      status: 'processing',
       requestedBy: user.id,
       timestamp: new Date().toISOString(),
       supabaseUrl: supabaseUrl,
@@ -104,7 +106,7 @@ Deno.serve(async (req) => {
     console.log('Triggering n8n webhook for file processing:', webhookPayload);
 
     // Send webhook to n8n
-    const webhookUrl = 'https://mantooq.app.n8n.cloud/webhook-test/c5aeeb2d-8cae-449d-899c-48b145969c1d';
+    const webhookUrl = 'https://n8n.srv1034943.hstgr.cloud/webhook/c5aeeb2d-8cae-449d-899c-48b145969c1d';
     
     try {
       const webhookResponse = await fetch(webhookUrl, {
