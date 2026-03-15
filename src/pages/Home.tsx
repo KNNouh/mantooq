@@ -22,37 +22,37 @@ const Home = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className={`flex items-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
             <div className="flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
-                alt="منطوق - Mantooq" 
-                className="w-12 h-12 sm:w-16 sm:h-16 object-contain dark:hidden" 
-              />
-              <img 
-                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
-                alt="منطوق - Mantooq" 
-                className="w-12 h-12 sm:w-16 sm:h-16 object-contain hidden dark:block" 
-              />
+              <img
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png"
+                alt="منطوق - Mantooq"
+                className="w-12 h-12 sm:w-16 sm:h-16 object-contain dark:hidden" />
+              
+              <img
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png"
+                alt="منطوق - Mantooq"
+                className="w-12 h-12 sm:w-16 sm:h-16 object-contain hidden dark:block" />
+              
             </div>
           </div>
           
           <div className="flex gap-2 sm:gap-3 items-center">
             <LanguageSwitcher />
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => navigate('/auth')}
               className="border-primary/20 touch-target text-sm sm:text-base"
               size="sm"
-              aria-label={t('auth.login')}
-            >
+              aria-label={t('auth.login')}>
+              
               <span className="hidden sm:inline">{t('auth.login')}</span>
               <span className="sm:hidden">دخول</span>
             </Button>
-            <Button 
+            <Button
               onClick={() => navigate('/auth')}
               className="bg-gradient-mantooq hover:opacity-90 transition-opacity touch-target text-sm sm:text-base"
               size="sm"
-              aria-label={t('auth.start')}
-            >
+              aria-label={t('auth.start')}>
+              
               <span className="hidden sm:inline">{t('auth.start')}</span>
               <span className="sm:hidden">ابدأ</span>
             </Button>
@@ -65,20 +65,20 @@ const Home = () => {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 sm:mb-8">
             <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 bg-gradient-to-br from-primary/10 to-mantooq-gold/10 backdrop-blur-sm">
-              <img 
-                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
-                alt="منطوق - Mantooq" 
-                className="w-20 h-20 sm:w-28 sm:h-28 object-contain dark:hidden drop-shadow-xl" 
-              />
-              <img 
-                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
-                alt="منطوق - Mantooq" 
-                className="w-20 h-20 sm:w-28 sm:h-28 object-contain hidden dark:block drop-shadow-xl" 
-              />
+              <img
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png"
+                alt="منطوق - Mantooq"
+                className="w-20 h-20 sm:w-28 sm:h-28 object-contain dark:hidden drop-shadow-xl" />
+              
+              <img
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png"
+                alt="منطوق - Mantooq"
+                className="w-20 h-20 sm:w-28 sm:h-28 object-contain hidden dark:block drop-shadow-xl" />
+              
             </div>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight text-[hsl(var(--text-gray-dark))]">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 leading-tight text-[hsl(var(--text-gray-dark))] font-serif md:text-7xl">
             {t('hero.title')}
           </h1>
           
@@ -91,22 +91,22 @@ const Home = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-4">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={() => navigate('/auth')}
               className="bg-gradient-mantooq hover:opacity-90 transition-opacity text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
-              aria-label={t('hero.start_chat')}
-            >
+              aria-label={t('hero.start_chat')}>
+              
               <MessageCircle className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
               {t('hero.start_chat')}
             </Button>
             <AboutDialog>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-primary/20 text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
-                aria-label={t('hero.learn_more')}
-              >
+                aria-label={t('hero.learn_more')}>
+                
                 <BookOpen className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                 {t('hero.learn_more')}
               </Button>
@@ -205,16 +205,16 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center">
           <div className={`flex items-center justify-center ${language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'} mb-4`}>
             <div className="flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png" 
-                alt="منطوق - Mantooq" 
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain dark:hidden" 
-              />
-              <img 
-                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png" 
-                alt="منطوق - Mantooq" 
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain hidden dark:block" 
-              />
+              <img
+                src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png"
+                alt="منطوق - Mantooq"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain dark:hidden" />
+              
+              <img
+                src="/lovable-uploads/38c37bca-eb39-4f3c-a215-f82eef9f74ac.png"
+                alt="منطوق - Mantooq"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain hidden dark:block" />
+              
             </div>
           </div>
           <p className="text-muted-foreground text-xs sm:text-sm">
@@ -222,8 +222,8 @@ const Home = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Home;
