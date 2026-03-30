@@ -96,7 +96,7 @@ const Home = () => {
             <Button
               size="lg"
               onClick={() => navigate("/auth")}
-              className="bg-blue-700 hover:bg-blue-800 text-white transition-colors text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
+              className="bg-mantooq-gold hover:opacity-90 text-white transition-colors text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
               aria-label={t("hero.start_chat")}
             >
               <MessageCircle className={`w-5 h-5 ${language === "ar" ? "ml-2" : "mr-2"}`} />
