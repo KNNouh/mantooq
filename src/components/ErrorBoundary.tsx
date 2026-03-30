@@ -98,7 +98,8 @@ class ErrorBoundary extends Component<Props, State> {
                 </Button>
                 <Button
                   onClick={this.handleGoHome}
-                  className="flex-1 bg-gradient-mantooq"
+                  variant="gold"
+                  className="flex-1"
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Go Home
