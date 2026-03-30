@@ -65,7 +65,7 @@ const Home = () => {
       <section className="container mx-auto px-4 py-8 sm:py-16 text-center" id="main-content" role="main">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 sm:mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 bg-gradient-to-br from-primary/10 to-mantooq-gold/10 backdrop-blur-sm">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm">
               <img
                 src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png"
                 alt="منطوق - Mantooq"
@@ -116,14 +116,14 @@ const Home = () => {
           </div>
 
           {/* Brand Pattern */}
-          <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-mantooq-gold" aria-hidden="true">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-mantooq-gold rounded-full"></div>
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-mantooq-gold rounded-full"></div>
-            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-mantooq-gold rounded-full"></div>
+          <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-primary" aria-hidden="true">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full"></div>
+            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-primary rounded-full"></div>
+            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-primary rounded-full"></div>
             <div className="text-lg sm:text-2xl">✦</div>
-            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-mantooq-gold rounded-full"></div>
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-mantooq-gold rounded-full"></div>
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-mantooq-gold rounded-full"></div>
+            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-primary rounded-full"></div>
+            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-primary rounded-full"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full"></div>
           </div>
         </div>
       </section>
