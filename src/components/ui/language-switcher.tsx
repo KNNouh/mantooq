@@ -16,7 +16,7 @@ const LanguageSwitcher = () => {
           onClick={() => setLanguage('ar')}
           className={`text-xs px-3 py-1 ${
             language === 'ar' 
-              ? 'bg-primary text-primary-foreground' 
+              ? 'bg-mantooq-gold text-white' 
               : 'hover:bg-background'
           }`}
         >
