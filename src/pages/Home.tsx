@@ -79,15 +79,15 @@ const Home = () => {
             </div>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 leading-tight text-[hsl(var(--text-gray-dark))] font-serif md:text-7xl">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 leading-tight text-foreground md:text-7xl">
             {t('hero.title')}
           </h1>
           
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-[hsl(var(--text-blue-primary))]">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-primary">
             {t('hero.subtitle')}
           </h2>
           
-          <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-4xl mx-auto leading-relaxed text-[hsl(var(--text-blue-secondary))] px-4">
+          <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-4xl mx-auto leading-relaxed text-muted-foreground px-4">
             {t('hero.description')}
           </p>
           
