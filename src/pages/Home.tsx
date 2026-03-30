@@ -48,7 +48,7 @@ const Home = () => {
               <span className="sm:hidden">دخول</span>
             </Button>
             <Button
-              variant="gold"
+              variant="default"
               onClick={() => navigate('/auth')}
               className="touch-target text-sm sm:text-base"
               size="sm"
