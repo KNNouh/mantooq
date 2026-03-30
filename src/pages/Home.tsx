@@ -40,7 +40,7 @@ const Home = () => {
             <Button
               variant="outline"
               onClick={() => navigate('/auth')}
-              className="border-primary/20 touch-target text-sm sm:text-base"
+              className="border-mantooq-gold text-mantooq-gold touch-target text-sm sm:text-base"
               size="sm"
               aria-label={t('auth.login')}>
               
