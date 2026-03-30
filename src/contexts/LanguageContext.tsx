@@ -42,7 +42,7 @@ const translations = {
     'cta.join': '',
     
     // Footer
-    'footer.copyright': '© 2024 منطوق. متخصص في قوانين المناقصات القطرية.',
+    'footer.copyright': 'جميع الحقوق محفوظة © منطوق 2026',
     
     // Chat Interface
     'chat.history': 'سجل المحادثات',
