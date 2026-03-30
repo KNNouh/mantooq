@@ -94,7 +94,7 @@ export const AuthForm: React.FC = () => {
     <Card className="w-full border-primary/10 shadow-lg">
       <CardHeader className="text-center space-y-2">
         <CardTitle className="text-2xl font-bold">
-          <span className="bg-gradient-qatar bg-clip-text text-transparent">
+          <span className="text-mantooq-gold">
             تسجيل الدخول
           </span>
         </CardTitle>
