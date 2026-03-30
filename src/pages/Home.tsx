@@ -83,7 +83,7 @@ const Home = () => {
             {t('hero.title')}
           </h1>
           
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-[hsl(var(--text-blue-primary))]">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 text-primary">
             {t('hero.subtitle')}
           </h2>
           
