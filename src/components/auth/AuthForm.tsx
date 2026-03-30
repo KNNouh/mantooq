@@ -105,7 +105,7 @@ export const AuthForm: React.FC = () => {
       <CardContent>
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-            <TabsTrigger value="signin" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-mantooq-gold data-[state=active]:text-white">
               تسجيل الدخول
             </TabsTrigger>
             <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
