@@ -49,13 +49,6 @@ const buttonVariants = cva(
           "disabled:text-muted-foreground disabled:no-underline disabled:opacity-50",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-sm"
         ],
-        gold: [
-          "bg-mantooq-gold text-white shadow-sm",
-          "hover:bg-mantooq-gold/85 hover:shadow-md",
-          "active:bg-mantooq-gold/75 active:scale-[0.98]",
-          "disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50",
-          "focus-visible:ring-2 focus-visible:ring-mantooq-gold focus-visible:ring-offset-2"
-        ],
       },
       size: {
         default: "h-10 px-4 py-2 text-sm min-h-[44px] [&_svg]:size-4",
