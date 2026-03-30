@@ -48,8 +48,9 @@ const Home = () => {
               <span className="sm:hidden">دخول</span>
             </Button>
             <Button
+              variant="gold"
               onClick={() => navigate('/auth')}
-              className="bg-gradient-mantooq hover:opacity-90 transition-opacity touch-target text-sm sm:text-base"
+              className="touch-target text-sm sm:text-base"
               size="sm"
               aria-label={t('auth.start')}>
               
