@@ -10,11 +10,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: [
-          "bg-primary text-primary-foreground shadow-sm",
-          "hover:bg-primary-hover hover:shadow-md",
-          "active:bg-primary-active active:scale-[0.98]",
+          "bg-mantooq-gold text-white shadow-sm",
+          "hover:bg-mantooq-gold/85 hover:shadow-md",
+          "active:bg-mantooq-gold/75 active:scale-[0.98]",
           "disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          "focus-visible:ring-2 focus-visible:ring-mantooq-gold focus-visible:ring-offset-2"
         ],
         destructive: [
           "bg-destructive text-destructive-foreground shadow-sm",
@@ -24,11 +24,11 @@ const buttonVariants = cva(
           "focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
         ],
         outline: [
-          "border border-input bg-background shadow-sm",
-          "hover:bg-accent hover:text-accent-foreground hover:shadow-md",
+          "border border-mantooq-gold text-mantooq-gold bg-background shadow-sm",
+          "hover:bg-mantooq-gold hover:text-white hover:shadow-md",
           "active:scale-[0.98]",
           "disabled:border-muted disabled:text-muted-foreground disabled:opacity-50",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          "focus-visible:ring-2 focus-visible:ring-mantooq-gold focus-visible:ring-offset-2"
         ],
         secondary: [
           "bg-secondary text-secondary-foreground shadow-sm",
