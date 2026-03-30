@@ -106,7 +106,7 @@ const Home = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-primary/20 text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
+                className="border-mantooq-gold text-mantooq-gold text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"
                 aria-label={t('hero.learn_more')}>
                 
                 <BookOpen className={`w-5 h-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
