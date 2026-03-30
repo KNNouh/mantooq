@@ -48,7 +48,7 @@ const Home = () => {
               <span className="sm:hidden">دخول</span>
             </Button>
             <Button
-              variant="gold"
+              variant="default"
               onClick={() => navigate('/auth')}
               className="touch-target text-sm sm:text-base"
               size="sm"
@@ -93,7 +93,7 @@ const Home = () => {
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-4">
             <Button
-              variant="gold"
+              variant="default"
               size="lg"
               onClick={() => navigate('/auth')}
               className="text-base sm:text-lg px-6 sm:px-8 py-3 w-full sm:w-auto touch-target"

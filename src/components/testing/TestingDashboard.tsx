@@ -405,7 +405,7 @@ const TestingDashboard: React.FC = () => {
             <Button 
               onClick={runTests} 
               disabled={isRunning}
-              variant="gold"
+              variant="default"
             >
               {isRunning ? (
                 <>
