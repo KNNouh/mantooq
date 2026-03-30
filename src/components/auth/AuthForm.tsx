@@ -105,10 +105,10 @@ export const AuthForm: React.FC = () => {
       <CardContent>
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-            <TabsTrigger value="signin" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-mantooq-gold data-[state=active]:text-white">
               تسجيل الدخول
             </TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="signup" className="data-[state=active]:bg-mantooq-gold data-[state=active]:text-white">
               حساب جديد
             </TabsTrigger>
           </TabsList>
@@ -143,7 +143,7 @@ export const AuthForm: React.FC = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 transition-colors" 
+                className="w-full" 
                 disabled={loading}
               >
                 {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
@@ -182,7 +182,7 @@ export const AuthForm: React.FC = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 transition-colors" 
+                className="w-full" 
                 disabled={loading}
               >
                 {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد'}
