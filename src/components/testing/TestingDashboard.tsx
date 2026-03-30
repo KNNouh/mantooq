@@ -405,7 +405,7 @@ const TestingDashboard: React.FC = () => {
             <Button 
               onClick={runTests} 
               disabled={isRunning}
-              className="bg-gradient-mantooq"
+              variant="gold"
             >
               {isRunning ? (
                 <>

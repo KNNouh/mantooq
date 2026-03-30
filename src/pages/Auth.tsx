@@ -33,7 +33,7 @@ const Auth = () => {
               <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="text-right">
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-qatar bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-xl font-bold text-mantooq-gold">
                 Qatar AI Assistant
               </h1>
               <p className="text-xs text-muted-foreground">مساعد قطر الذكي</p>
