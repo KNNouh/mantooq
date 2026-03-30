@@ -241,7 +241,7 @@ export const ChatInterface: React.FC = () => {
                     size="sm"
                     onClick={() => navigate('/admin')}
                     title="Admin Panel"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className=""
                   >
                     <Settings className="w-4 h-4 mr-1" />
                     Admin
