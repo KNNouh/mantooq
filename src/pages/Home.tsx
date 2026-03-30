@@ -117,13 +117,13 @@ const Home = () => {
 
           {/* Brand Pattern */}
           <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-primary" aria-hidden="true">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full"></div>
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-primary rounded-full"></div>
-            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-primary rounded-full"></div>
-            <div className="text-lg sm:text-2xl">✦</div>
-            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 bg-primary rounded-full"></div>
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-primary rounded-full"></div>
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full text-left bg-transparent"></div>
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-transparent"></div>
+            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full bg-transparent"></div>
+            <div className="text-lg sm:text-2xl">​</div>
+            <div className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full bg-transparent"></div>
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-transparent"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent"></div>
           </div>
         </div>
       </section>
