@@ -29,14 +29,14 @@ const Auth = () => {
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-4 sm:mb-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg items-center justify-center flex flex-col text-secondary bg-primary-foreground">
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex-row flex items-center justify-center gap-0 rounded-none text-transparent bg-transparent">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-transparent bg-transparent" />
             </div>
             <div className="text-right">
               <h1 className="text-lg sm:text-xl font-bold text-primary">
-                Qatar AI Assistant
+                ​
               </h1>
-              <p className="text-xs text-muted-foreground">مساعد قطر الذكي</p>
+              <p className="text-xs text-muted-foreground">​</p>
             </div>
           </div>
           
