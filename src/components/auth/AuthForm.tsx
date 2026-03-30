@@ -182,7 +182,7 @@ export const AuthForm: React.FC = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 transition-colors" 
+                className="w-full" 
                 disabled={loading}
               >
                 {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد'}
