@@ -52,12 +52,12 @@ const Auth = () => {
         </div>
 
         {/* Cultural Pattern */}
-        <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-cultural-gold mt-6 sm:mt-8" aria-hidden="true">
-          <div className="w-1 h-1 bg-cultural-gold rounded-full"></div>
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cultural-gold rounded-full"></div>
+        <div className="flex justify-center items-center space-x-2 sm:space-x-4 text-mantooq-gold mt-6 sm:mt-8" aria-hidden="true">
+          <div className="w-1 h-1 bg-mantooq-gold rounded-full"></div>
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-mantooq-gold rounded-full"></div>
           <div className="text-base sm:text-lg">✦</div>
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cultural-gold rounded-full"></div>
-          <div className="w-1 h-1 bg-cultural-gold rounded-full"></div>
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-mantooq-gold rounded-full"></div>
+          <div className="w-1 h-1 bg-mantooq-gold rounded-full"></div>
         </div>
       </div>
     </div>
