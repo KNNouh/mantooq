@@ -65,7 +65,7 @@ const Home = () => {
       <section className="container mx-auto px-4 py-8 sm:py-16 text-center" id="main-content" role="main">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 sm:mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 bg-gradient-to-br from-primary/10 to-mantooq-gold/10 backdrop-blur-sm">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm">
               <img
                 src="/lovable-uploads/5ac7ae81-9a0f-4618-995a-d9837ee86dbf.png"
                 alt="منطوق - Mantooq"
