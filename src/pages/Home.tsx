@@ -87,7 +87,7 @@ const Home = () => {
             {t('hero.subtitle')}
           </h2>
           
-          <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-4xl mx-auto leading-relaxed text-[hsl(var(--text-blue-secondary))] px-4">
+          <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-4xl mx-auto leading-relaxed text-muted-foreground px-4">
             {t('hero.description')}
           </p>
           
