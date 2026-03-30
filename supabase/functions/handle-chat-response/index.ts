@@ -175,11 +175,7 @@ Deno.serve(async (req) => {
     console.error('❌ Unexpected error in n8n callback:', error.message);
     console.error('📊 Error stack:', error.stack);
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        timestamp: new Date().toISOString(),
-        errorDetails: error.message 
-      }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

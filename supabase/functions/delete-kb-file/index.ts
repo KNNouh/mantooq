@@ -51,11 +51,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { fileId } = await req.json();
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (!fileId) {
+    const { fileId } = requestBody;
+
+    if (!fileId || typeof fileId !== 'string') {
       return new Response(
         JSON.stringify({ error: 'File ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(fileId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid file ID format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
