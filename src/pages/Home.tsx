@@ -79,7 +79,7 @@ const Home = () => {
             </div>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 leading-tight text-[hsl(var(--text-gray-dark))] font-serif md:text-7xl">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 leading-tight text-foreground md:text-7xl">
             {t('hero.title')}
           </h1>
           
