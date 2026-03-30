@@ -29,7 +29,7 @@ const Auth = () => {
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-4 sm:mb-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-qatar rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-mantooq-gold rounded-lg flex items-center justify-center">
               <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div className="text-right">
